@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Request #{{ req['id'] }} — Help R Circle{% endblock %}
+
+{% block content %}
+<section class="page-hero page-hero-teal">
+  <div class="container">
+    <h1><i class="fas fa-file-lines"></i> Request Details</h1>
+    <p>View the full request information, volunteer assignment, and progress at a glance.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container" style="max-width: 860px;">
+    <div class="request-detail-shell">
+      <div class="request-detail-header">
+        <div>
+          <span class="request-id-label">Request #{{ req['id'] }}</span>
+          <h2>{{ req['help_type'] }}</h2>
+        </div>
+        <span class="status-badge status-{{ status_class }}">{{ status_label }}</span>
+      </div>
+
+      <div class="request-detail-grid">
+        <div class="detail-card">
+          <h3>Description</h3>
+          <p>{{ req['description'] }}</p>
+        </div>
+        <div class="detail-card">
+          <h3>Location</h3>
+          <p>{{ req['location'] }}</p>
+        </div>
+        <div class="detail-card">
+          <h3>Date submitted</h3>
+          <p>{{ req['created_at'] }}</p>
+        </div>
+        <div class="detail-card">
+          <h3>Last updated</h3>
+          <p>{{ req['updated_at'] }}</p>
+        </div>
+      </div>
+
+      {% if req['status'] in ('volunteer_assigned', 'volunteer_on_way', 'volunteer_near_location', 'volunteer_reached_location', 'completed') and volunteer_contact %}
+      <div class="volunteer-card">
+        <div class="volunteer-card-header">
+          <h2><i class="fas fa-user-check"></i> Assigned Volunteer</h2>
+          <span class="status-badge status-{{ req['status'] }}">{{ req['status']|capitalize }}</span>
+        </div>
+        <div class="volunteer-card-body">
+          <div class="volunteer-info-grid">
+            <div class="volunteer-info-item">
+              <label>Name</label>
+              <p>{{ volunteer_contact['name'] }}</p>
+            </div>
+            <div class="volunteer-info-item">
+              <label>Phone</label>
+              <p><a href="tel:{{ volunteer_contact['phone'] }}">{{ volunteer_contact['phone'] }}</a></p>
+            </div>
+            <div class="volunteer-info-item">
+              <label>Email</label>
+              <p>{% if volunteer_contact['email'] %}<a href="mailto:{{ volunteer_contact['email'] }}">{{ volunteer_contact['email'] }}</a>{% else %}<span class="text-muted">Not provided</span>{% endif %}</p>
+            </div>
+            {% if volunteer_contact['availability'] %}
+            <div class="volunteer-info-item">
+              <label>Availability</label>
+              <p>{{ volunteer_contact['availability'] }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% elif req['status'] == 'pending' %}
+      <!-- Pending Status Message -->
+      <div class="volunteer-card volunteer-card-pending">
+        <div class="volunteer-card-body">
+          <p><i class="fas fa-hourglass-half"></i> Waiting for a volunteer to accept this request. Volunteer information will appear here once someone accepts.</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if can_update_progress %}
+      <div class="detail-actions" style="margin-top: 24px;">
+        <form method="POST" action="{{ url_for('start_journey', req_id=req['id']) }}" style="display:inline">
+          <input type="hidden" name="volunteer_latitude" id="volunteer_latitude" value="">
+          <input type="hidden" name="volunteer_longitude" id="volunteer_longitude" value="">
+          <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-route"></i> Start Journey</button>
+        </form>
+        <form method="POST" action="{{ url_for('refresh_location', req_id=req['id']) }}" style="display:inline">
+          <input type="hidden" name="volunteer_latitude" id="volunteer_latitude_refresh" value="">
+          <input type="hidden" name="volunteer_longitude" id="volunteer_longitude_refresh" value="">
+          <button type="submit" class="btn btn-outline btn-lg"><i class="fas fa-location-crosshairs"></i> Refresh Location</button>
+        </form>
+        <form method="POST" action="{{ url_for('mark_reached', req_id=req['id']) }}" style="display:inline">
+          <button type="submit" class="btn btn-outline btn-lg"><i class="fas fa-map-marker-alt"></i> Mark Reached</button>
+        </form>
+      </div>
+      {% endif %}
+
+      <div class="detail-actions">
+        <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline btn-lg"><i class="fas fa-arrow-left"></i> Back to My Requests</a>
+        <a href="{{ url_for('track_request', request_id=req['id']) }}" class="btn btn-primary btn-lg"><i class="fas fa-location-arrow"></i> Track this request</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const fields = document.querySelectorAll('input[id^="volunteer_latitude"]');
+      const fieldsLng = document.querySelectorAll('input[id^="volunteer_longitude"]');
+      fields.forEach((field) => field.value = lat);
+      fieldsLng.forEach((field) => field.value = lng);
+    }, function() {});
+  }
+</script>
+{% endblock %}

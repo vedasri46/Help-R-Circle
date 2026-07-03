@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Track Your Request — Help R Circle{% endblock %}
+
+{% block content %}
+<section class="page-hero page-hero-teal">
+  <div class="container">
+    <h1><i class="fas fa-search-location"></i> Track Your Request</h1>
+    <p>{% if result %}View the current status of your request.{% else %}Enter your Request ID to check the current status.{% endif %}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container" style="max-width:640px">
+
+    {% if result is none %}
+    <div class="form-card">
+      <h2 class="form-card-title"><i class="fas fa-id-badge"></i> Enter Your Request ID</h2>
+      <form method="POST" action="{{ url_for('track') }}" class="lhn-form">
+        <div class="form-group track-input-group">
+          <label for="request_id"><i class="fas fa-hashtag"></i> Request ID</label>
+          <input type="text" id="request_id" name="request_id"
+                 placeholder="e.g. 3"
+                 value="{{ request.form.get('request_id','') }}"
+                 style="font-size:1.3rem; text-align:center; letter-spacing:2px"/>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="fas fa-search"></i> Track Request
+        </button>
+      </form>
+    </div>
+    {% endif %}
+
+    {% if result %}
+    <div class="track-result">
+      <div class="track-result-header status-{{ result['status'] }}">
+        <div class="tr-id">#{{ result['id'] }}</div>
+        <div class="tr-status">
+          {% if result['status'] == 'pending' %}⏳ Request Submitted — Waiting for a volunteer
+          {% elif result['status'] == 'volunteer_assigned' %}✅ Accepted — A helper has accepted your request.
+          {% elif result['status'] == 'volunteer_on_way' %}🚗 Volunteer On The Way — Your volunteer is traveling to you.
+          {% elif result['status'] == 'volunteer_near_location' %}📍 Volunteer Near Location — The volunteer is close by.
+          {% elif result['status'] == 'volunteer_reached_location' %}🏁 Volunteer Reached Location — The volunteer has arrived.
+          {% elif result['status'] == 'completed' %}🎉 Completed — Task done!
+          {% else %}❌ Cancelled{% endif %}
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="status-timeline">
+        <div class="tl-step {% if result['status'] in ['pending','volunteer_assigned','volunteer_on_way','volunteer_near_location','volunteer_reached_location','completed'] %}done{% endif %}">
+          <div class="tl-dot"><i class="fas fa-check"></i></div>
+          <div class="tl-text">Submitted</div>
+        </div>
+        <div class="tl-line"></div>
+        <div class="tl-step {% if result['status'] in ['volunteer_assigned','volunteer_on_way','volunteer_near_location','volunteer_reached_location','completed'] %}done{% elif result['status']=='pending' %}active{% endif %}">
+          <div class="tl-dot"><i class="fas fa-user-check"></i></div>
+          <div class="tl-text">Accepted</div>
+        </div>
+        <div class="tl-line"></div>
+        <div class="tl-step {% if result['status'] in ['volunteer_on_way','volunteer_near_location','volunteer_reached_location','completed'] %}done{% elif result['status']=='volunteer_assigned' %}active{% endif %}">
+          <div class="tl-dot"><i class="fas fa-route"></i></div>
+          <div class="tl-text">On the Way</div>
+        </div>
+        <div class="tl-line"></div>
+        <div class="tl-step {% if result['status'] in ['volunteer_near_location','volunteer_reached_location','completed'] %}done{% elif result['status']=='volunteer_on_way' %}active{% endif %}">
+          <div class="tl-dot"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="tl-text">Near Location</div>
+        </div>
+        <div class="tl-line"></div>
+        <div class="tl-step {% if result['status'] in ['volunteer_reached_location','completed'] %}done{% elif result['status'] in ['volunteer_near_location'] %}active{% endif %}">
+          <div class="tl-dot"><i class="fas fa-flag-checkered"></i></div>
+          <div class="tl-text">Reached</div>
+        </div>
+        <div class="tl-line"></div>
+        <div class="tl-step {% if result['status']=='completed' %}done{% endif %}">
+          <div class="tl-dot"><i class="fas fa-hands-helping"></i></div>
+          <div class="tl-text">Completed</div>
+        </div>
+      </div>
+
+      <!-- Details -->
+      <div class="track-details">
+        <div class="td-row"><span>Name</span><strong>{{ result['name'] }}</strong></div>
+        <div class="td-row"><span>Help Type</span><strong>{{ result['help_type'] }}</strong></div>
+        <div class="td-row"><span>Location</span><strong>{{ result['location'] }}</strong></div>
+        <div class="td-row"><span>Urgency</span>
+          <strong class="urgency-{{ result['urgency'] }}">{{ result['urgency']|capitalize }}</strong>
+        </div>
+        <div class="td-row"><span>Description</span><strong>{{ result['description'] }}</strong></div>
+        <div class="td-row"><span>Submitted</span><strong>{{ result['created_at'] }}</strong></div>
+        <div class="td-row"><span>Last Updated</span><strong>{{ result['updated_at'] }}</strong></div>
+      </div>
+
+      <!-- Assigned Volunteer Card — Only show when accepted or completed -->
+      {% if result['status'] in ('volunteer_assigned', 'volunteer_on_way', 'volunteer_near_location', 'volunteer_reached_location', 'completed') and volunteer_contact %}
+      <div class="volunteer-card" style="margin-top: 28px;">
+        <div class="volunteer-card-header">
+          <h2><i class="fas fa-user-check"></i> Assigned Volunteer</h2>
+          <span class="status-badge status-{{ result['status'] }}">{{ result['status']|capitalize }}</span>
+        </div>
+        <div class="volunteer-card-body">
+          <div class="volunteer-info-grid">
+            <div class="volunteer-info-item">
+              <label>Name</label>
+              <p>{{ volunteer_contact['name'] }}</p>
+            </div>
+            <div class="volunteer-info-item">
+              <label>Phone</label>
+              <p><a href="tel:{{ volunteer_contact['phone'] }}">{{ volunteer_contact['phone'] }}</a></p>
+            </div>
+            <div class="volunteer-info-item">
+              <label>Email</label>
+              <p>{% if volunteer_contact['email'] %}<a href="mailto:{{ volunteer_contact['email'] }}">{{ volunteer_contact['email'] }}</a>{% else %}<span class="text-muted">Not provided</span>{% endif %}</p>
+            </div>
+            {% if volunteer_contact['availability'] %}
+            <div class="volunteer-info-item">
+              <label>Availability</label>
+              <p>{{ volunteer_contact['availability'] }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% elif result['status'] == 'pending' %}
+      <!-- Pending Status Message -->
+      <div class="volunteer-card volunteer-card-pending" style="margin-top: 28px;">
+        <div class="volunteer-card-body">
+          <p><i class="fas fa-hourglass-half"></i> Waiting for a volunteer to accept this request. Volunteer information will appear here once someone accepts.</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+        <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline btn-lg"><i class="fas fa-arrow-left"></i> Back to My Requests</a>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

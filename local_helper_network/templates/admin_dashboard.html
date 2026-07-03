@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Help R Circle{% endblock %}
+
+{% block content %}
+<div class="dashboard-root">
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon"><i class="fas fa-shield-alt"></i></span>
+      <div>
+        <p class="eyebrow">Administrator</p>
+        <h2>Help R Circle</h2>
+      </div>
+    </div>
+
+    <nav class="dashboard-nav">
+      <a href="#overview" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+      <a href="#users"><i class="fas fa-users"></i> Users</a>
+      <a href="#volunteers"><i class="fas fa-hands-helping"></i> Volunteers</a>
+      <a href="#requests"><i class="fas fa-clipboard-list"></i> Requests</a>
+      <a href="{{ url_for('admin_contact_messages') }}"><i class="fas fa-envelope"></i> Contact Messages</a>
+      <a href="{{ url_for('profile') }}"><i class="fas fa-user-cog"></i> Profile</a>
+    </nav>
+
+    <div class="sidebar-summary">
+      <h3>Quick stats</h3>
+      <ul>
+        <li><strong>{{ stats.total_users }}</strong> requesters</li>
+        <li><strong>{{ stats.total_volunteers }}</strong> volunteers</li>
+        <li><strong>{{ stats.total_requests }}</strong> requests</li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="dashboard-main">
+    <section id="overview" class="dashboard-header">
+      <div>
+        <p class="eyebrow">Administrator Panel</p>
+        <h1>Admin Dashboard</h1>
+        <p>Manage users, volunteers, help requests, and site metrics from one secure interface.</p>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn btn-outline">Sign Out</a>
+    </section>
+
+    <section class="dashboard-overview">
+      <article class="dashboard-card">
+        <div class="dashboard-card-icon"><i class="fas fa-user-shield"></i></div>
+        <div>
+          <h3>{{ stats.total_admins }}</h3>
+          <p>Admins</p>
+        </div>
+      </article>
+      <article class="dashboard-card">
+        <div class="dashboard-card-icon"><i class="fas fa-users"></i></div>
+        <div>
+          <h3>{{ stats.total_users }}</h3>
+          <p>Requesters</p>
+        </div>
+      </article>
+      <article class="dashboard-card">
+        <div class="dashboard-card-icon"><i class="fas fa-hands-helping"></i></div>
+        <div>
+          <h3>{{ stats.total_volunteers }}</h3>
+          <p>Volunteers</p>
+        </div>
+      </article>
+      <article class="dashboard-card">
+        <div class="dashboard-card-icon"><i class="fas fa-clipboard-list"></i></div>
+        <div>
+          <h3>{{ stats.total_requests }}</h3>
+          <p>Total requests</p>
+        </div>
+      </article>
+      <article class="dashboard-card">
+        <div class="dashboard-card-icon"><i class="fas fa-hourglass-half"></i></div>
+        <div>
+          <h3>{{ stats.pending_requests }}</h3>
+          <p>Pending</p>
+        </div>
+      </article>
+      <article class="dashboard-card">
+        <div class="dashboard-card-icon"><i class="fas fa-check-circle"></i></div>
+        <div>
+          <h3>{{ stats.accepted_requests }}</h3>
+          <p>Accepted</p>
+        </div>
+      </article>
+    </section>
+
+    <section id="users" class="dashboard-section">
+      <div class="section-header">
+        <div>
+          <h2>User Accounts</h2>
+          <p>Search requesters by username or email.</p>
+        </div>
+        <form method="GET" action="{{ url_for('admin_dashboard') }}" class="search-form">
+          <input type="text" name="user_search" value="{{ user_search }}" placeholder="Search users..." class="form-input" />
+          <button type="submit" class="btn btn-secondary">Search</button>
+        </form>
+      </div>
+
+      <div class="table-card">
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+              <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+                <td>{{ user.created_at }}</td>
+                <td>
+                  <form method="POST" action="{{ url_for('admin_delete_user', user_id=user.id) }}" class="inline-form">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this user account?');">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6">No users found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span>Showing {{ users|length }} user accounts</span>
+          <div class="pagination">
+            <button class="btn btn-ghost" disabled>Previous</button>
+            <span>Page 1 of 1</span>
+            <button class="btn btn-ghost">Next</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="volunteers" class="dashboard-section">
+      <div class="section-header">
+        <div>
+          <h2>Volunteers</h2>
+          <p>Review active volunteer profiles and manage assignments.</p>
+        </div>
+        <form method="GET" action="{{ url_for('admin_dashboard') }}" class="search-form">
+          <input type="text" name="volunteer_search" value="{{ volunteer_search }}" placeholder="Search volunteers..." class="form-input" />
+          <button type="submit" class="btn btn-secondary">Search</button>
+        </form>
+      </div>
+
+      <div class="table-card">
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Location</th>
+                <th>Skills</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for volunteer in volunteers %}
+              <tr>
+                <td>{{ volunteer.id }}</td>
+                <td>{{ volunteer.name }}</td>
+                <td>{{ volunteer.email or '—' }}</td>
+                <td>{{ volunteer.location }}</td>
+                <td>{{ volunteer.skills }}</td>
+                <td>
+                  <form method="POST" action="{{ url_for('admin_delete_volunteer', volunteer_id=volunteer.id) }}" class="inline-form">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this volunteer?');">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6">No volunteers found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span>Showing {{ volunteers|length }} volunteers</span>
+          <div class="pagination">
+            <button class="btn btn-ghost" disabled>Previous</button>
+            <span>Page 1 of 1</span>
+            <button class="btn btn-ghost">Next</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="requests" class="dashboard-section">
+      <div class="section-header">
+        <div>
+          <h2>Help Requests</h2>
+          <p>Monitor and manage all help requests in the system.</p>
+        </div>
+        <form method="GET" action="{{ url_for('admin_dashboard') }}" class="search-form">
+          <select name="status" class="form-input">
+            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All statuses</option>
+            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>Accepted</option>
+            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+          </select>
+          <input type="text" name="request_search" value="{{ request_search }}" placeholder="Search requests..." class="form-input" />
+          <button type="submit" class="btn btn-secondary">Filter</button>
+        </form>
+      </div>
+
+      <div class="table-card">
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Volunteer</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in requests %}
+              <tr>
+                <td>{{ req.id }}</td>
+                <td>{{ req.name }}</td>
+                <td>{{ req.location }}</td>
+                <td>{{ req.help_type }}</td>
+                <td>{{ req.status }}</td>
+                <td>{{ req.volunteer_name or 'Unassigned' }}</td>
+                <td>
+                  <form method="POST" action="{{ url_for('admin_delete_request', req_id=req.id) }}" class="inline-form">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this request?');">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="7">No requests found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span>Showing {{ requests|length }} requests</span>
+          <div class="pagination">
+            <button class="btn btn-ghost" disabled>Previous</button>
+            <span>Page 1 of 1</span>
+            <button class="btn btn-ghost">Next</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

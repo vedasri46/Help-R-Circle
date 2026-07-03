@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}My Requests — Help R Circle{% endblock %}
+
+{% block content %}
+<section class="dashboard-section container">
+  <div class="user-dashboard-shell">
+    <div class="dashboard-topbar">
+      <div class="dashboard-header-copy">
+        <span class="section-tag">My Requests</span>
+        <h1>Welcome back, {{ username }}!</h1>
+        <p class="muted">Your active requests appear here with clear status, volunteer updates, and fast actions.</p>
+      </div>
+      <div class="dashboard-action-row">
+        <a href="{{ url_for('request_help') }}" class="btn btn-primary btn-lg"><i class="fas fa-circle-plus"></i> Create New Request</a>
+        <a href="{{ url_for('user_dashboard') }}" class="btn btn-white btn-lg"><i class="fas fa-rotate-right"></i> Refresh</a>
+      </div>
+    </div>
+
+    <div class="dashboard-stats-grid">
+      <article class="stat-card stat-total">
+        <div class="stat-icon"><i class="fas fa-list-check"></i></div>
+        <div>
+          <span class="stat-label">Total requests</span>
+          <span class="stat-value">{{ user_stats.total_requests }}</span>
+        </div>
+      </article>
+      <article class="stat-card stat-pending">
+        <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+        <div>
+          <span class="stat-label">Pending</span>
+          <span class="stat-value">{{ user_stats.pending }}</span>
+        </div>
+      </article>
+      <article class="stat-card stat-accepted">
+        <div class="stat-icon"><i class="fas fa-hands-helping"></i></div>
+        <div>
+          <span class="stat-label">Accepted</span>
+          <span class="stat-value">{{ user_stats.accepted }}</span>
+        </div>
+      </article>
+      <article class="stat-card stat-completed">
+        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+        <div>
+          <span class="stat-label">Completed</span>
+          <span class="stat-value">{{ user_stats.completed }}</span>
+        </div>
+      </article>
+    </div>
+
+    {% if requests and requests|length > 0 %}
+    <div class="user-request-cards-grid">
+      {% for r in requests %}
+      <article class="user-request-card">
+        <div class="user-request-card-header">
+          <div>
+            <span class="user-request-id">Request #{{ r['id'] }}</span>
+            <h2>{{ r['help_type'] }}</h2>
+          </div>
+          <span class="status-badge status-{{ r['status'] }}">{{ r['status']|capitalize }}</span>
+        </div>
+
+        <div class="user-request-body">
+          <div class="user-request-icon-block">
+            {% if r['help_type'].lower() == 'grocery shopping' %}
+              <i class="fas fa-shopping-basket"></i>
+            {% elif r['help_type'].lower() == 'medicine collection' %}
+              <i class="fas fa-pills"></i>
+            {% elif r['help_type'].lower() == 'bill payment' %}
+              <i class="fas fa-file-invoice-dollar"></i>
+            {% elif r['help_type'].lower() == 'travel assistance' %}
+              <i class="fas fa-car-side"></i>
+            {% else %}
+              <i class="fas fa-hands-helping"></i>
+            {% endif %}
+          </div>
+          <p class="user-request-desc">{{ r['description'][:180] }}{% if r['description']|length > 180 %}...{% endif %}</p>
+        </div>
+
+        <div class="user-request-meta-grid">
+          <div class="meta-block">
+            <span class="meta-label">Location</span>
+            <span>{{ r['location'] }}</span>
+          </div>
+          <div class="meta-block">
+            <span class="meta-label">Date Submitted</span>
+            <span>{{ r['created_at'] }}</span>
+          </div>
+          <div class="meta-block">
+            <span class="meta-label">Urgency</span>
+            <span>{{ r['urgency']|capitalize }}</span>
+          </div>
+        </div>
+
+        <div class="user-request-card-actions">
+          <a href="{{ url_for('request_details', req_id=r['id']) }}" class="btn btn-white btn-sm">
+            <i class="fas fa-eye"></i> View details
+          </a>
+          <a href="{{ url_for('track_request', request_id=r['id']) }}" class="btn btn-outline btn-sm">
+            <i class="fas fa-location-arrow"></i> Track
+          </a>
+          {% if r['status'] not in ['completed', 'cancelled'] %}
+          <form action="{{ url_for('user_cancel_request', req_id=r['id']) }}" method="POST" class="inline-action-form">
+            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this request?')">
+              <i class="fas fa-ban"></i> Cancel
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state empty-state-dashboard">
+      <div class="empty-illustration"><i class="fas fa-hand-holding-heart"></i></div>
+      <h2>You haven't submitted any requests yet.</h2>
+      <p>When you need help, your requests will appear here clearly with volunteer status and quick actions.</p>
+      <a href="{{ url_for('request_help') }}" class="btn btn-primary btn-lg">Request Help</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

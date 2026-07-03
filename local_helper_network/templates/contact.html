@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Contact — Help R Circle{% endblock %}
+
+{% block content %}
+<section class="page-hero page-hero-purple">
+  <div class="container">
+    <h1><i class="fas fa-envelope"></i> Contact Us</h1>
+    <p>Have a question or feedback? We'd love to hear from you.</p>
+  </div>
+</section>
+
+<section class="section contact-section">
+  <div class="container contact-container">
+
+    <!-- Contact Info -->
+    <div class="contact-info">
+      <h3>Get in Touch</h3>
+      <p>Whether you have a suggestion, a concern, or just want to know more about us, our team is happy to help.</p>
+
+      <div class="contact-items">
+        <div class="contact-item">
+          <div class="ci-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div>
+            <strong>Location</strong>
+            <span>Hyderabad, Telangana, India</span>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="ci-icon"><i class="fas fa-phone"></i></div>
+          <div>
+            <strong>Phone</strong>
+            <span>+91 98765 43210</span>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="ci-icon"><i class="fas fa-envelope"></i></div>
+          <div>
+            <strong>Email</strong>
+            <span>help@localhelper.in</span>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="ci-icon"><i class="fas fa-clock"></i></div>
+          <div>
+            <strong>Response Time</strong>
+            <span>Within 24 hours</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="form-card">
+      <h2 class="form-card-title"><i class="fas fa-paper-plane"></i> Send a Message</h2>
+      <form action="{{ url_for('contact') }}" method="POST" class="lhn-form" novalidate>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name"><i class="fas fa-user"></i> Your Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name"
+                   placeholder="Full Name"
+                   value="{{ form_data.get('name', '') }}" required/>
+          </div>
+          <div class="form-group">
+            <label for="email"><i class="fas fa-envelope"></i> Email <span class="required">*</span></label>
+            <input type="email" id="email" name="email"
+                   placeholder="your@email.com"
+                   value="{{ form_data.get('email', '') }}" required/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="message"><i class="fas fa-comment-alt"></i> Message <span class="required">*</span></label>
+          <textarea id="message" name="message" rows="5"
+                    placeholder="Your message here…">{{ form_data.get('message', '') }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="fas fa-paper-plane"></i> Send Message
+        </button>
+      </form>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

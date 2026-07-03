@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Help R Circle{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-split">
+    <section class="auth-hero">
+      <span class="hero-badge"><i class="fas fa-hands-helping"></i> Help R Circle</span>
+      <h1>Welcome back, helper.</h1>
+      <p class="hero-copy">Sign in to your account and get directed to your personalized dashboard based on your role.</p>
+
+      <div class="hero-features">
+        <div class="feature-card">
+          <i class="fas fa-zap"></i>
+          <div>
+            <strong>Seamless access</strong>
+            <p>Automatically routed to your dashboard upon login.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-shield-alt"></i>
+          <div>
+            <strong>Secure & private</strong>
+            <p>Your account is protected by encrypted authentication.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-mobile-alt"></i>
+          <div>
+            <strong>Works everywhere</strong>
+            <p>Responsive design for desktop, tablet, and mobile.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-note">
+        <strong>Try demo accounts:</strong>
+        <div class="demo-creds-inline">
+          <span><strong>User:</strong> user@example.com / password123</span>
+          <span><strong>Volunteer:</strong> volunteer@example.com / password123</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-panel auth-card">
+      <header class="auth-card-header">
+        <div>
+          <p class="eyebrow">Login</p>
+          <h2>Secure sign in</h2>
+        </div>
+        <span class="auth-pill"><i class="fas fa-user-shield"></i> Administrator portal available</span>
+      </header>
+
+      <form id="loginForm" method="POST" action="{{ url_for('login') }}" class="auth-form lhn-form" novalidate>
+        <div class="form-field">
+          <label for="email" class="form-label">Email address</label>
+          <div class="input-with-icon">
+            <i class="fas fa-envelope"></i>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-input"
+              placeholder="your.email@example.com"
+              value="{{ form_data.get('email', '') }}"
+              required
+              autocomplete="username"
+              autofocus
+            />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="password" class="form-label">Password</label>
+          <div class="input-with-icon password-row">
+            <i class="fas fa-lock"></i>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-input"
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+            />
+            <button type="button" class="password-toggle" aria-label="Show password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row auth-options">
+          <label class="checkbox-label">
+            <input type="checkbox" name="remember" value="1" />
+            Remember me
+          </label>
+          <a href="#" class="text-link">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full auth-submit">
+          <span class="btn-text">Sign In</span>
+        </button>
+
+        <p class="auth-footer">
+          New to Help R Circle?
+          <a href="{{ url_for('signup') }}" class="auth-link">Create an account</a>
+        </p>
+      </form>
+
+      <div class="auth-note">
+        Authorized administrators should use the <a href="{{ url_for('admin_login') }}">admin portal</a>.
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

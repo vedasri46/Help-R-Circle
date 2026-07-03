@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile — Help R Circle{% endblock %}
+
+{% block content %}
+<section class="page-hero page-hero-teal">
+  <div class="container">
+    <h1><i class="fas fa-user-circle"></i> My Volunteer Profile</h1>
+    <p>Manage your volunteer account and track your activity.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container" style="max-width: 900px;">
+    <div class="profile-container">
+      
+      <!-- Profile Card -->
+      <div class="profile-card">
+        <div class="profile-header volunteer-header">
+          <div class="profile-avatar">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div class="profile-header-info">
+            <h2>{{ volunteer['name'] }}</h2>
+            <p class="role-badge role-volunteer">
+              <i class="fas fa-hands-helping"></i> Volunteer
+            </p>
+            <p class="profile-member-since">Member since {{ volunteer['created_at'][:10] }}</p>
+          </div>
+        </div>
+
+        <!-- Personal Information -->
+        <div class="profile-section">
+          <h3><i class="fas fa-info-circle"></i> Personal Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Name</label>
+              <p>{{ volunteer['name'] }}</p>
+            </div>
+            <div class="info-item">
+              <label>Email Address</label>
+              <p><a href="mailto:{{ volunteer['email'] }}">{{ volunteer['email'] }}</a></p>
+            </div>
+            <div class="info-item">
+              <label>Phone Number</label>
+              <p><a href="tel:{{ volunteer['phone'] }}">{{ volunteer['phone'] }}</a></p>
+            </div>
+            <div class="info-item">
+              <label>Location</label>
+              <p>{{ volunteer['location'] }}</p>
+            </div>
+            <div class="info-item full-width">
+              <label>Skills</label>
+              <p>{{ volunteer['skills'] }}</p>
+            </div>
+            <div class="info-item full-width">
+              <label>Availability</label>
+              <p>{{ volunteer['availability'] }}</p>
+            </div>
+            {% if volunteer['about'] %}
+            <div class="info-item full-width">
+              <label>About Me</label>
+              <p>{{ volunteer['about'] }}</p>
+            </div>
+            {% endif %}
+            <div class="info-item">
+              <label>Account Type</label>
+              <p>Volunteer</p>
+            </div>
+            <div class="info-item">
+              <label>Member Since</label>
+              <p>{{ volunteer['created_at'][:10] }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Volunteer Statistics -->
+        <div class="profile-section">
+          <h3><i class="fas fa-chart-bar"></i> Volunteer Statistics</h3>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-number">{{ stats['accepted_requests'] }}</div>
+              <div class="stat-label">Accepted Requests</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number stat-completed">{{ stats['completed_requests'] }}</div>
+              <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number stat-active">{{ stats['active_requests'] }}</div>
+              <div class="stat-label">Active</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="profile-section">
+          <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+          <div class="action-buttons">
+            <a href="{{ url_for('edit_profile_volunteer') }}" class="btn btn-primary">
+              <i class="fas fa-edit"></i> Edit Profile
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+              <i class="fas fa-chart-line"></i> Volunteer Dashboard
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+.profile-container {
+  display: flex;
+  gap: 24px;
+}
+
+.profile-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  flex: 1;
+}
+
+.profile-header {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--teal) 100%);
+  color: #fff;
+  padding: 32px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.profile-header.volunteer-header {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--teal) 100%);
+}
+
+.profile-avatar {
+  font-size: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.95;
+}
+
+.profile-header-info h2 {
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.role-badge {
+  display: inline-block;
+  background: rgba(255,255,255,.25);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.role-volunteer {
+  background: rgba(255,255,255,.3);
+}
+
+.role-badge i { margin-right: 4px; }
+
+.profile-member-since {
+  color: rgba(255,255,255,.85);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.profile-section {
+  padding: 28px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-section:last-child {
+  border-bottom: none;
+}
+
+.profile-section h3 {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.info-item p {
+  font-size: 1rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.info-item a {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.stat-item {
+  background: var(--bg-tinted);
+  padding: 20px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--secondary);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-number.stat-completed { color: var(--status-completed); }
+.stat-number.stat-active { color: var(--status-accepted); }
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background: #1e4f39;
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-dark);
+  color: var(--text);
+}
+
+.btn-outline:hover {
+  background: var(--bg-tinted);
+}
+
+@media (max-width: 760px) {
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+{% endblock %}

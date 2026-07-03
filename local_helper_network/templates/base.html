@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Help R Circle{% endblock %}</title>
+
+  <!-- Google Fonts: Fraunces (display) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <!-- Font Awesome icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <link rel="icon" href="{{ url_for('static', filename='images/help_r_circle_logo.png') }}" type="image/png"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ══ NAVIGATION ══════════════════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <!-- Logo -->
+    <a href="{{ url_for('index') }}" class="nav-logo">
+      <img src="{{ url_for('static', filename='images/help_r_circle_logo.png') }}" alt="Help R Circle logo" class="brand-logo" />
+      <span class="logo-text">Help R <strong>Circle</strong></span>
+    </a>
+
+    <!-- Desktop Links -->
+    <ul class="nav-links" id="navLinks">
+      <li><a href="{{ url_for('index') }}"        class="nav-link {% if request.endpoint=='index' %}active{% endif %}">Home</a></li>
+      <li><a href="{{ url_for('go_request_help') }}" class="nav-link {% if request.endpoint=='request_help' or request.endpoint=='go_request_help' %}active{% endif %}">Get Help</a></li>
+      <li><a href="{{ url_for('go_volunteer') }}"    class="nav-link {% if request.endpoint=='volunteer' or request.endpoint=='go_volunteer' %}active{% endif %}">Volunteer</a></li>
+      {% if session.get('role') == 'volunteer' %}
+      <li><a href="{{ url_for('dashboard') }}"    class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}">Dashboard</a></li>
+      {% elif session.get('role') == 'user' %}
+      <li><a href="{{ url_for('user_dashboard') }}" class="nav-link {% if request.endpoint=='user_dashboard' %}active{% endif %}">My Requests</a></li>
+      {% elif session.get('role') == 'admin' %}
+      <li><a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint=='admin_dashboard' %}active{% endif %}">Admin Panel</a></li>
+      {% endif %}
+      <li><a href="{{ url_for('track') }}"        class="nav-link {% if request.endpoint=='track' %}active{% endif %}">Track</a></li>
+      <li><a href="{{ url_for('about') }}"        class="nav-link {% if request.endpoint=='about' %}active{% endif %}">About</a></li>
+      {% if session.get('role') == 'admin' %}
+      <li><a href="{{ url_for('admin_contact_messages') }}" class="nav-link {% if request.endpoint=='admin_contact_messages' %}active{% endif %}">Contact Messages</a></li>
+      {% else %}
+      <li><a href="{{ url_for('contact') }}"      class="nav-link {% if request.endpoint=='contact' %}active{% endif %}">Contact Us</a></li>
+      {% endif %}
+    </ul>
+
+    <!-- CTA + Hamburger -->
+    <div class="nav-actions">
+      {% if session.get('user_id') %}
+        <!-- User is logged in -->
+        <div class="user-menu">
+          {% if session.get('role') == 'admin' %}
+          <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline btn-sm">Admin Panel</a>
+          {% endif %}
+          <a href="{{ url_for('profile') }}" class="user-greeting" title="View profile">
+            <i class="fas fa-user-circle"></i>
+            {{ session.get('username') }}
+          </a>
+          <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Logout</a>
+        </div>
+      {% else %}
+        <!-- User is not logged in -->
+        <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm">Login</a>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-sm nav-cta">Sign Up</a>
+      {% endif %}
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ FLASH MESSAGES ══════════════════════════════════════════════════════ -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-container" id="flashContainer">
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">
+      <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+      <span>{{ message }}</span>
+      <button class="flash-close" onclick="this.parentElement.remove()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<!-- ══ MAIN CONTENT ════════════════════════════════════════════════════════ -->
+<main class="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <a href="{{ url_for('index') }}" class="nav-logo footer-logo">
+        <img src="{{ url_for('static', filename='images/help_r_circle_logo.png') }}" alt="Help R Circle logo" class="brand-logo footer-brand-logo" />
+        <span class="logo-text">Help R <strong>Circle</strong></span>
+      </a>
+      <p class="footer-tagline">Connecting communities, one helping hand at a time.</p>
+    </div>
+
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="{{ url_for('go_request_help') }}">Request Help</a></li>
+          <li><a href="{{ url_for('go_volunteer') }}">Become a Volunteer</a></li>
+          <li><a href="{{ url_for('go_volunteer') }}">Dashboard</a></li>
+          <li><a href="{{ url_for('track') }}">Track Request</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>About</h4>
+        <ul>
+          <li><a href="{{ url_for('about') }}">Our Mission</a></li>
+          <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Help Types</h4>
+        <ul>
+          <li><i class="fas fa-shopping-basket"></i> Grocery Shopping</li>
+          <li><i class="fas fa-pills"></i> Medicine Collection</li>
+          <li><i class="fas fa-file-invoice"></i> Bill Payment</li>
+          <li><i class="fas fa-car"></i> Travel Assistance</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Help R Circle &mdash; Built with ❤️ for communities</p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

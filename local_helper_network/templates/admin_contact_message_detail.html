@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Message Details - Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-root">
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon"><i class="fas fa-shield-alt"></i></span>
+      <div>
+        <p class="eyebrow">Administrator</p>
+        <h2>Help R Circle</h2>
+      </div>
+    </div>
+
+    <nav class="dashboard-nav">
+      <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-chart-line"></i> Overview</a>
+      <a href="{{ url_for('admin_dashboard') }}#users"><i class="fas fa-users"></i> Users</a>
+      <a href="{{ url_for('admin_dashboard') }}#volunteers"><i class="fas fa-hands-helping"></i> Volunteers</a>
+      <a href="{{ url_for('admin_dashboard') }}#requests"><i class="fas fa-clipboard-list"></i> Requests</a>
+      <a href="{{ url_for('admin_contact_messages') }}" class="active"><i class="fas fa-envelope"></i> Contact Messages</a>
+      <a href="{{ url_for('profile') }}"><i class="fas fa-user-cog"></i> Profile</a>
+    </nav>
+  </aside>
+
+  <main class="dashboard-main">
+    <section class="dashboard-header">
+      <div>
+        <p class="eyebrow">Contact Message</p>
+        <h1>Message Details</h1>
+      </div>
+      <a href="{{ url_for('admin_contact_messages') }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back to Messages
+      </a>
+    </section>
+
+    <section class="dashboard-section">
+      <div class="message-detail-card">
+        <div class="detail-header">
+          <div>
+            <h2>{{ message.name }}</h2>
+            <p class="detail-meta">
+              <i class="fas fa-envelope"></i> {{ message.email }}
+            </p>
+            {% if message.subject %}
+              <p class="detail-meta">
+                <strong>Subject:</strong> {{ message.subject }}
+              </p>
+            {% endif %}
+            <p class="detail-meta">
+              <i class="fas fa-calendar"></i> {{ message.created_at }}
+            </p>
+          </div>
+          <div class="detail-status">
+            <span class="status-badge {% if message.status == 'pending' %}status-pending{% else %}status-resolved{% endif %}">
+              {{ message.status | capitalize }}
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-message">
+          <h3>Message</h3>
+          <p>{{ message.message }}</p>
+        </div>
+
+        <div class="detail-actions">
+          <h3>Actions</h3>
+          <div class="action-buttons">
+            {% if message.status == 'pending' %}
+              <form method="POST" action="{{ url_for('admin_update_contact_status', msg_id=message.id, status='resolved') }}">
+                <button type="submit" class="btn btn-success">
+                  <i class="fas fa-check-circle"></i> Mark as Resolved
+                </button>
+              </form>
+            {% else %}
+              <form method="POST" action="{{ url_for('admin_update_contact_status', msg_id=message.id, status='pending') }}">
+                <button type="submit" class="btn btn-secondary">
+                  <i class="fas fa-hourglass-half"></i> Mark as Pending
+                </button>
+              </form>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('admin_delete_contact_message', msg_id=message.id) }}" onsubmit="return confirm('Delete this message permanently?');">
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash-alt"></i> Delete Message
+              </button>
+            </form>
+
+            <a href="{{ url_for('admin_contact_messages') }}" class="btn btn-outline">
+              <i class="fas fa-arrow-left"></i> Back
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<style>
+  .message-detail-card {
+    background: rgba(255, 255, 255, .96);
+    border: 1px solid rgba(226, 232, 240, .95);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
+    max-width: 800px;
+  }
+
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(226, 232, 240, .5);
+  }
+
+  .message-detail-card h2 {
+    margin: 0 0 12px 0;
+    font-size: 1.6rem;
+    color: var(--text-primary);
+  }
+
+  .detail-meta {
+    margin: 8px 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .detail-meta strong {
+    color: var(--text-secondary);
+  }
+
+  .detail-status {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .status-pending {
+    background-color: rgba(251, 146, 60, .1);
+    color: #ea580c;
+  }
+
+  .status-resolved {
+    background-color: rgba(34, 197, 94, .1);
+    color: #16a34a;
+  }
+
+  .detail-message {
+    margin-bottom: 32px;
+  }
+
+  .detail-message h3 {
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+  }
+
+  .detail-message p {
+    margin: 0;
+    padding: 20px;
+    background-color: rgba(241, 245, 249, .5);
+    border-radius: 8px;
+    border-left: 4px solid #0ea5e9;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .detail-actions h3 {
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .action-buttons form,
+  .action-buttons a {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .action-buttons button,
+  .action-buttons a {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .btn-success {
+    background-color: #22c55e;
+    color: white;
+  }
+
+  .btn-success:hover {
+    background-color: #16a34a;
+  }
+
+  .btn-danger {
+    background-color: #ef4444;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background-color: #dc2626;
+  }
+
+  .btn-secondary {
+    background-color: #64748b;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: #475569;
+  }
+
+  .btn-outline {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid rgba(226, 232, 240, .95);
+  }
+
+  .btn-outline:hover {
+    background-color: rgba(226, 232, 240, .5);
+  }
+
+  @media (max-width: 768px) {
+    .message-detail-card {
+      padding: 20px;
+    }
+
+    .detail-header {
+      flex-direction: column;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .action-buttons form,
+    .action-buttons a {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}

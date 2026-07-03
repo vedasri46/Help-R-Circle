@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Become a Volunteer — Help R Circle{% endblock %}
+
+{% block content %}
+<section class="page-hero page-hero-green">
+  <div class="container">
+    <h1><i class="fas fa-user-plus"></i> Volunteer Registration</h1>
+    <p>Join our community of helpers and make a real difference in someone's day.</p>
+  </div>
+</section>
+
+<section class="section form-section">
+  <div class="container form-container">
+
+    <!-- Why Volunteer Panel -->
+    <div class="form-info-panel panel-green">
+      <h3><i class="fas fa-star"></i> Why Volunteer?</h3>
+      <ul>
+        <li><i class="fas fa-heart"></i> Make a genuine impact locally</li>
+        <li><i class="fas fa-clock"></i> Help on your own schedule</li>
+        <li><i class="fas fa-certificate"></i> Build community service hours</li>
+        <li><i class="fas fa-users"></i> Connect with your neighbourhood</li>
+        <li><i class="fas fa-hand-holding-heart"></i> No experience required</li>
+      </ul>
+      <div class="info-help-types">
+        <h4>Current Need:</h4>
+        <div class="info-tags">
+          <span><i class="fas fa-shopping-basket"></i> Grocery</span>
+          <span><i class="fas fa-pills"></i> Medicine</span>
+          <span><i class="fas fa-file-invoice"></i> Bills</span>
+          <span><i class="fas fa-car"></i> Travel</span>
+        </div>
+      </div>
+      <div class="panel-quote">
+        <blockquote>"Small acts of kindness can change someone's entire day."</blockquote>
+      </div>
+    </div>
+
+    <!-- Volunteer Form -->
+    <div class="form-card">
+      <h2 class="form-card-title">
+        <i class="fas fa-id-card"></i> Volunteer Registration Form
+      </h2>
+
+      <form action="{{ url_for('volunteer') }}" method="POST" class="lhn-form" novalidate>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name"><i class="fas fa-user"></i> Full Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name"
+                   placeholder="e.g. Aditya Singh"
+                   value="{{ form_data.get('name', '') }}" required/>
+          </div>
+          <div class="form-group">
+            <label for="phone"><i class="fas fa-phone"></i> Phone Number <span class="required">*</span></label>
+            <input type="tel" id="phone" name="phone"
+                   placeholder="e.g. 9876543210"
+                   value="{{ form_data.get('phone', '') }}" required/>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+            <input type="email" id="email" name="email"
+                   placeholder="e.g. aditya@email.com"
+                   value="{{ form_data.get('email', '') }}"/>
+          </div>
+          <div class="form-group">
+            <label for="location"><i class="fas fa-map-marker-alt"></i> Your Area / Locality <span class="required">*</span></label>
+            <input type="text" id="location" name="location"
+                   placeholder="e.g. Jubilee Hills, Hyderabad"
+                   value="{{ form_data.get('location', '') }}" required/>
+          </div>
+        </div>
+
+        <!-- Skills checkboxes -->
+        <div class="form-group">
+          <label><i class="fas fa-tools"></i> Skills / Help Types You Can Offer <span class="required">*</span></label>
+          <div class="checkbox-grid">
+            {% set skill_options = [
+              ('Grocery Shopping',    'fa-shopping-basket', 'Grocery Shopping'),
+              ('Medicine Collection', 'fa-pills',           'Medicine Collection'),
+              ('Bill Payment',        'fa-file-invoice',    'Bill Payment'),
+              ('Travel Assistance',   'fa-car-side',        'Travel Assistance'),
+              ('General Errands',     'fa-clipboard-list',  'General Errands'),
+              ('Other',               'fa-ellipsis-h',      'Other Tasks'),
+            ] %}
+            {% for val, icon, label in skill_options %}
+            <label class="checkbox-card {% if val in selected_skills %}checked{% endif %}">
+              <input type="checkbox" name="skills" value="{{ val }}"
+                     {% if val in selected_skills %}checked{% endif %}/>
+              <span class="checkbox-inner">
+                <i class="fas {{ icon }}"></i>
+                <span>{{ label }}</span>
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="availability"><i class="fas fa-calendar-alt"></i> Your Availability <span class="required">*</span></label>
+          <input type="text" id="availability" name="availability"
+                 placeholder="e.g. Weekends + weekday evenings after 6 PM"
+                 value="{{ form_data.get('availability', '') }}" required/>
+        </div>
+
+        <div class="form-group">
+          <label for="about"><i class="fas fa-comment"></i> Tell Us a Little About Yourself <small>(Optional)</small></label>
+          <textarea id="about" name="about" rows="3"
+                    placeholder="Why do you want to volunteer? Any relevant experience?">{{ form_data.get('about', '') }}</textarea>
+        </div>
+
+        <div class="form-notice">
+          <i class="fas fa-shield-alt"></i>
+          By registering, you agree to treat all requesters with dignity and respect.
+          Your contact details will only be shared when you accept a task.
+        </div>
+
+        <button type="submit" class="btn btn-success btn-full btn-lg">
+          <i class="fas fa-check-circle"></i> Register as Volunteer
+        </button>
+      </form>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Toggle "checked" style on checkbox cards
+  document.querySelectorAll('.checkbox-card input').forEach(cb => {
+    cb.addEventListener('change', () => {
+      cb.closest('.checkbox-card').classList.toggle('checked', cb.checked);
+    });
+  });
+</script>
+{% endblock %}

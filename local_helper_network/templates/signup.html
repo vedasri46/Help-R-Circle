@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - Help R Circle{% endblock %}
+
+{% block content %}
+<div class="auth-page signup-page">
+  <div class="auth-split">
+    <section class="auth-hero signup-hero">
+      <span class="hero-badge"><i class="fas fa-user-plus"></i> Join the community</span>
+      <h1>Create a premium account</h1>
+      <p class="hero-copy">Register as a user or volunteer and start helping your neighborhood with a polished, secure experience.</p>
+
+      <div class="hero-features">
+        <div class="feature-card">
+          <i class="fas fa-tasks"></i>
+          <div>
+            <strong>Simple onboarding</strong>
+            <p>Fast account creation with clear onboarding steps.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-users"></i>
+          <div>
+            <strong>Community first</strong>
+            <p>Join a trusted network of helpers and requesters.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-lock"></i>
+          <div>
+            <strong>Secure by design</strong>
+            <p>Encrypted passwords and secure authentication.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-note">Admin accounts are created by the system. Please use the admin portal if you need administrator access.</div>
+    </section>
+
+    <section class="auth-panel auth-card">
+      <header class="auth-card-header">
+        <div>
+          <p class="eyebrow">Sign up</p>
+          <h2>Create your account</h2>
+        </div>
+        <span class="auth-pill"><i class="fas fa-user-circle"></i> User & volunteer onboarding</span>
+      </header>
+
+      <form id="signupForm" method="POST" action="{{ url_for('signup') }}" class="auth-form lhn-form" novalidate>
+        <div class="form-field">
+          <label for="username" class="form-label">Full name</label>
+          <div class="input-with-icon">
+            <i class="fas fa-user"></i>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              class="form-input"
+              placeholder="Your name"
+              value="{{ form_data.get('username', '') }}"
+              required
+              minlength="3"
+            />
+          </div>
+          <span class="form-hint">Minimum 3 characters.</span>
+        </div>
+
+        <div class="form-field">
+          <label for="email" class="form-label">Email address</label>
+          <div class="input-with-icon">
+            <i class="fas fa-envelope"></i>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-input"
+              placeholder="your.email@example.com"
+              value="{{ form_data.get('email', '') }}"
+              required
+            />
+          </div>
+          <span class="form-hint">We'll never share your email.</span>
+        </div>
+
+        <div class="form-field">
+          <label for="password" class="form-label">Password</label>
+          <div class="input-with-icon password-row">
+            <i class="fas fa-lock"></i>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-input"
+              placeholder="Create a strong password"
+              required
+              minlength="6"
+            />
+            <button type="button" class="password-toggle" aria-label="Show password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <span class="form-hint">Minimum 6 characters. Use numbers and symbols for strength.</span>
+          <div class="password-strength">
+            <div class="password-strength-meter">
+              <span id="passwordStrengthFill" class="password-strength-fill"></span>
+            </div>
+            <small id="passwordStrengthText" class="password-strength-text">Enter a strong password</small>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="confirm_password" class="form-label">Confirm password</label>
+          <div class="input-with-icon password-row">
+            <i class="fas fa-lock-open"></i>
+            <input
+              type="password"
+              id="confirm_password"
+              name="confirm_password"
+              class="form-input"
+              placeholder="Re-enter your password"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">I want to...</label>
+          <div class="role-grid">
+            <label class="role-card selected">
+              <input type="radio" name="role" value="user" checked />
+              <span class="role-icon"><i class="fas fa-hand-paper"></i></span>
+              <div>
+                <strong>Request help</strong>
+                <small>Join as a user and submit requests.</small>
+              </div>
+            </label>
+            <label class="role-card">
+              <input type="radio" name="role" value="volunteer" />
+              <span class="role-icon"><i class="fas fa-heart"></i></span>
+              <div>
+                <strong>Volunteer</strong>
+                <small>Offer help to your community.</small>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="volunteer-fields hidden">
+          <div class="form-field">
+            <label for="skills" class="form-label">Skills</label>
+            <div class="input-with-icon">
+              <i class="fas fa-tools"></i>
+              <input
+                type="text"
+                id="skills"
+                name="skills"
+                class="form-input"
+                placeholder="e.g. delivery, companionship, tutoring"
+              />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="availability" class="form-label">Availability</label>
+            <div class="input-with-icon">
+              <i class="fas fa-calendar-alt"></i>
+              <input
+                type="text"
+                id="availability"
+                name="availability"
+                class="form-input"
+                placeholder="e.g. evenings, weekends"
+              />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="about" class="form-label">About me</label>
+            <textarea
+              id="about"
+              name="about"
+              class="form-input textarea-input"
+              placeholder="Tell your community a little about yourself"
+              rows="4"
+            ></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full auth-submit">
+          <span class="btn-text">Create Account</span>
+        </button>
+
+        <p class="auth-footer">
+          Already have an account?
+          <a href="{{ url_for('login') }}" class="auth-link">Log in here</a>
+        </p>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}
