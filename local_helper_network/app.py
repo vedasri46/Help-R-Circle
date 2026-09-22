@@ -2373,9 +2373,10 @@ def edit_profile_helper():
     return render_template("edit_profile_helper.html", user=user, helper=helper)
 
 # ── Run ───────────────────────────────────────────────────────────────────────
+
+db.init_db()
+
 if __name__ == "__main__":
-    db.init_db()          # Create tables if they don't exist
-    db.seed_sample_data() # Add sample data for demonstration
     app.run(debug=True, port=5000)
 
 
