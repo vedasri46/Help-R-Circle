@@ -8,7 +8,7 @@
 ┌──────────────────────────────────────────────────────┐
 │              Homepage (/)                            │
 │  ┌─────────────────────────────────────────────────┐ │
-│  │  [I Need Help]  [Become a Volunteer]           │ │
+│  │  [I Need Help]  [Become a Helper]           │ │
 │  └─────────────────────────────────────────────────┘ │
 │  Login | Sign Up (navbar)                           │
 └──────────────────────────────────────────────────────┘
@@ -81,14 +81,14 @@
 
 ---
 
-### Flow 2: Volunteer Journey
+### Flow 2: Helper Journey
 
 ```
 ┌──────────────────────────────────────────────────────┐
 │              Homepage (/)                            │
-│  [I Need Help]  [Become a Volunteer]                │
+│  [I Need Help]  [Become a Helper]                │
 └──────────────────────────────────────────────────────┘
-         │ (Click "Become a Volunteer")
+         │ (Click "Become a Helper")
          ↓
 ┌──────────────────────────────────────────────────────┐
 │              Smart Redirect: /go-volunteer          │
@@ -151,7 +151,7 @@
 ```
 ┌──────────────────────────────────────────────────────┐
 │              Homepage (/)                            │
-│  [I Need Help]  [Become a Volunteer]                │
+│  [I Need Help]  [Become a Helper]                │
 │  👤 john_user | Logout (navbar)                    │
 └──────────────────────────────────────────────────────┘
          │ (Click "Become a Volunteer")
@@ -423,7 +423,7 @@ Public Routes (No Auth Needed):
 │ phone    │ TEXT       │ NOT NULL           │
 │ location │ TEXT       │ NOT NULL           │
 │ help_type│ TEXT       │ NOT NULL           │
-│ urgency  │ TEXT       │ pending/urgent     │
+│ priority │ TEXT       │ emergency/urgent/normal │
 │ status   │ TEXT       │ pending/accepted/  │
 │          │            │ completed          │
 │ volunteer_name│ TEXT  │ Who accepted it    │

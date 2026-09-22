@@ -35,7 +35,7 @@ Read these in order to understand the implementation:
 - Not logged in → Go to login page
 - Logged in → Go to help request form
 
-**"Become a Volunteer" Button:**
+**"Become a Helper" Button:**
 - Not logged in → Go to login page
 - Logged in (not volunteer) → Show error, stay on homepage
 - Logged in (volunteer) → Go to volunteer dashboard
@@ -129,7 +129,7 @@ See **TESTING_GUIDE.md** for 20 comprehensive test cases.
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                     HOMEPAGE                            │
-│  [I Need Help]  [Become a Volunteer]                   │
+│  [I Need Help]  [Become a Helper]                   │
 └─────────────────────────────────────────────────────────┘
          │                          │
          ↓                          ↓
@@ -157,7 +157,7 @@ def login():
     session['role'] = user['role']
     
     # IMPORTANT: Different redirects by role
-    if user['role'] == 'volunteer':
+    if user['role'] == 'helper':
         return redirect(url_for('dashboard'))  # → /dashboard
     else:
         return redirect(url_for('request_help'))  # → /request-help
@@ -364,7 +364,7 @@ email = session.get('email')
 
 **Q: How do I redirect after login?**
 ```python
-if user['role'] == 'volunteer':
+if user['role'] == 'helper':
     return redirect(url_for('dashboard'))
 else:
     return redirect(url_for('request_help'))

@@ -253,7 +253,7 @@ c:\Users\VEDA\Downloads\local_helper_network\
 
 ✅ **Smart Redirects**
 - "I Need Help" button redirects based on login status
-- "Become a Volunteer" button redirects based on login status + role
+- "Become a Helper" button redirects based on login status + role
 - Different redirects after login based on role
 
 ✅ **User Feedback**

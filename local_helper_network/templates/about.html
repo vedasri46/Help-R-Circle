@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}About — Help R Circle{% endblock %}
+{% block title %}{{ t('about_title', 'About Us') }} — Help R Circle{% endblock %}
 
 {% block content %}
 <section class="page-hero">
   <div class="container">
-    <h1><i class="fas fa-info-circle"></i> About Us</h1>
-    <p>Our story, mission, and the team behind Help R Circle.</p>
+    <h1><i class="fas fa-info-circle"></i> {{ t('about_title', 'About Us') }}</h1>
+    <p>{{ t('about_subtitle', 'Our story, mission, and the team behind Help R Circle.') }}</p>
   </div>
 </section>
 
@@ -14,96 +14,81 @@
 
     <div class="about-mission">
       <div class="about-mission-text">
-        <span class="section-tag">Our Mission</span>
-        <h2>Bridging the Gap in Community Support</h2>
-        <p>
-          Every day, thousands of elderly citizens, people recovering from injuries,
-          pregnant women, and individuals living alone struggle with simple tasks
-          like buying groceries, collecting medicines, or paying utility bills.
-        </p>
-        <p>
-          <strong>Help R Circle</strong> was built to bridge this gap.
-          We connect people who need everyday assistance with caring, verified
-          volunteers from their own neighbourhood — creating a network of trust,
-          compassion, and community resilience.
-        </p>
-        <p>
-          Our platform is completely free, easy to use, and designed with elderly
-          users in mind — large text, simple navigation, and no complicated steps.
-        </p>
+        <span class="section-tag">{{ t('about_mission', 'Our Mission') }}</span>
+        <h2>{{ t('about_mission_heading', 'Bridging the Gap in Community Support') }}</h2>
+        <p>{{ t('about_mission_paragraph_1', 'Every day, many elderly people, recovering patients, pregnant women, and those living alone struggle with simple errands like grocery shopping, medicine collection, or bill payment.') }}</p>
+        <p>{{ t('about_mission_paragraph_2', 'Help R Circle was created to close that gap by connecting those who need everyday support with verified local helpers from their own neighbourhood.') }}</p>
+        <p>{{ t('about_mission_paragraph_3', 'Our platform is free, easy to use, and designed for seniors and families — with clear steps, readable text, and no confusing setup.') }}</p>
       </div>
       <div class="about-mission-visual">
         <div class="mission-card-stack">
           <div class="mc-icon mc-orange"><i class="fas fa-hands-helping"></i></div>
-          <div class="mc-stat"><span>100%</span>Free Service</div>
-          <div class="mc-stat"><span>Local</span>Volunteers</div>
-          <div class="mc-stat"><span>24/7</span>Request Tracking</div>
+          <div class="mc-stat"><span>100%</span>{{ t('about_stat_free_service', 'Free Service') }}</div>
+          <div class="mc-stat"><span>{{ t('about_stat_local_helpers_prefix', 'Local') }}</span>{{ t('about_stat_local_helpers', 'Helpers') }}</div>
+          <div class="mc-stat"><span>{{ t('about_stat_tracking_prefix', '24/7') }}</span>{{ t('about_stat_tracking', 'Request Tracking') }}</div>
         </div>
       </div>
     </div>
 
-    <!-- Problem → Solution -->
     <div class="ps-section">
       <div class="ps-card problem">
         <div class="ps-icon"><i class="fas fa-exclamation-triangle"></i></div>
-        <h3>The Problem</h3>
+        <h3>{{ t('about_problem_title', 'The Problem') }}</h3>
         <ul>
-          <li>Elderly people unable to travel to markets or hospitals</li>
-          <li>Injured individuals with no family nearby</li>
-          <li>New mothers overwhelmed with household responsibilities</li>
-          <li>Existing platforms too complex or expensive</li>
+          <li>{{ t('about_problem_item_1', 'Elderly people unable to travel to markets or hospitals.') }}</li>
+          <li>{{ t('about_problem_item_2', 'Injured individuals with no family nearby.') }}</li>
+          <li>{{ t('about_problem_item_3', 'New mothers overwhelmed with household responsibilities.') }}</li>
+          <li>{{ t('about_problem_item_4', 'Existing platforms are too complex or expensive.') }}</li>
         </ul>
       </div>
       <div class="ps-arrow"><i class="fas fa-arrow-right"></i></div>
       <div class="ps-card solution">
         <div class="ps-icon"><i class="fas fa-lightbulb"></i></div>
-        <h3>Our Solution</h3>
+        <h3>{{ t('about_solution_title', 'Our Solution') }}</h3>
         <ul>
-          <li>Simple, free web platform — no app download needed</li>
-          <li>Local volunteers already in your neighbourhood</li>
-          <li>Real-time status tracking with Request ID</li>
-          <li>Designed for accessibility and ease of use</li>
+          <li>{{ t('about_solution_item_1', 'A simple free web platform with no app download required.') }}</li>
+          <li>{{ t('about_solution_item_2', 'Local helpers from your own neighbourhood are ready to serve.') }}</li>
+          <li>{{ t('about_solution_item_3', 'Real-time status tracking keeps you informed at every step.') }}</li>
+          <li>{{ t('about_solution_item_4', 'Built for accessibility with easy navigation and clear text.') }}</li>
         </ul>
       </div>
     </div>
 
-    <!-- Values -->
     <div class="section-header" style="margin-top:3rem">
-      <span class="section-tag">What We Stand For</span>
-      <h2>Our Values</h2>
+      <span class="section-tag">{{ t('about_values', 'Our Values') }}</span>
+      <h2>{{ t('about_values', 'Our Values') }}</h2>
     </div>
     <div class="values-grid">
       <div class="value-card">
         <i class="fas fa-shield-alt"></i>
-        <h3>Safety First</h3>
-        <p>All interactions prioritise the safety and dignity of people seeking help.</p>
+        <h3>{{ t('about_value_safety_title', 'Safety First') }}</h3>
+        <p>{{ t('about_value_safety_desc', 'All interactions prioritise the safety and dignity of people seeking help.') }}</p>
       </div>
       <div class="value-card">
         <i class="fas fa-lock-open"></i>
-        <h3>Free & Open</h3>
-        <p>No charges, no subscriptions. The service is free for everyone, always.</p>
+        <h3>{{ t('about_value_free_title', 'Free & Open') }}</h3>
+        <p>{{ t('about_value_free_desc', 'No charges, no subscriptions. The service is free for everyone, always.') }}</p>
       </div>
       <div class="value-card">
         <i class="fas fa-users"></i>
-        <h3>Community Driven</h3>
-        <p>Built by the community, for the community. Every volunteer matters.</p>
+        <h3>{{ t('about_value_community_title', 'Community Driven') }}</h3>
+        <p>{{ t('about_value_community_desc', 'Built by the community, for the community. Every helper matters.') }}</p>
       </div>
       <div class="value-card">
         <i class="fas fa-universal-access"></i>
-        <h3>Accessible</h3>
-        <p>Designed with large fonts and simple navigation for elderly users.</p>
+        <h3>{{ t('about_value_accessible_title', 'Accessible') }}</h3>
+        <p>{{ t('about_value_accessible_desc', 'Designed with large fonts and simple navigation for elderly users.') }}</p>
       </div>
     </div>
 
-    <!-- Tech Stack -->
     <div class="tech-section">
-      <h2><i class="fas fa-code"></i> Built With</h2>
+      <h2><i class="fas fa-code"></i> {{ t('about_tech_title', 'Built With') }}</h2>
       <div class="tech-grid">
-        <div class="tech-item"><i class="fab fa-python"></i><span>Python Flask</span></div>
-        <div class="tech-item"><i class="fas fa-database"></i><span>SQLite</span></div>
-        <div class="tech-item"><i class="fab fa-html5"></i><span>HTML5</span></div>
-        <div class="tech-item"><i class="fab fa-css3-alt"></i><span>CSS3</span></div>
-        <div class="tech-item"><i class="fab fa-js"></i><span>JavaScript</span></div>
+        <div class="tech-item"><i class="fab fa-python"></i><span>{{ t('about_tech_python', 'Python Flask') }}</span></div>
+        <div class="tech-item"><i class="fas fa-database"></i><span>{{ t('about_tech_sqlite', 'SQLite') }}</span></div>
+        <div class="tech-item"><i class="fab fa-html5"></i><span>{{ t('about_tech_html5', 'HTML5') }}</span></div>
+        <div class="tech-item"><i class="fab fa-css3-alt"></i><span>{{ t('about_tech_css3', 'CSS3') }}</span></div>
+        <div class="tech-item"><i class="fab fa-js"></i><span>{{ t('about_tech_js', 'JavaScript') }}</span></div>
       </div>
     </div>
 

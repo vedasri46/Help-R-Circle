@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Users - Admin - Help R Circle{% endblock %}
+{% block content %}
+<div class="dashboard-root">
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-brand"><span class="sidebar-brand-icon"><i class="fas fa-shield-alt"></i></span><div><p class="eyebrow">Administrator</p><h2>Help <span class="brand-r">R</span> Circle</h2></div></div>
+    <nav class="dashboard-nav"><a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-chart-line"></i> Dashboard</a><a class="active" href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Users</a><a href="{{ url_for('admin_helpers') }}"><i class="fas fa-hands-helping"></i> Helpers</a><a href="{{ url_for('admin_map') }}"><i class="fas fa-map-marked-alt"></i> Location Map</a><a href="{{ url_for('admin_contact_messages') }}"><i class="fas fa-envelope"></i> Contact Messages</a></nav>
+  </aside>
+  <main class="dashboard-main">
+    <section class="dashboard-header"><div><p class="eyebrow">Account Management</p><h1>Users</h1><p>Review registered requester accounts and their help-request history.</p></div><a class="btn btn-outline" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a></section>
+    <section class="dashboard-section"><div class="section-header"><div><h2>Registered Users</h2><p>{{ users|length }} matching accounts</p></div><form method="get" class="search-form"><input class="form-input" name="search" value="{{ search_query }}" placeholder="Search users..." aria-label="Search users"><button class="btn btn-secondary" type="submit">Search</button></form></div>
+      <div class="table-card"><div class="table-scroll"><table class="data-table"><thead><tr><th>ID</th><th>Full Name</th><th>Email</th><th>Phone</th><th>Address / Location</th><th>Registered</th><th>Status</th><th>Requests</th><th>Actions</th></tr></thead><tbody>
+      {% for user in users %}<tr><td>{{ user['id'] }}</td><td>{{ user['username'] }}</td><td>{{ user['email'] }}</td><td>{{ user['phone'] or '—' }}</td><td>{{ user['location'] or '—' }}</td><td>{{ user['created_at'] }}</td><td>{% if user['is_verified'] %}Verified{% else %}Pending verification{% endif %}</td><td>{{ user['request_count'] }}</td><td><a class="btn btn-secondary btn-sm" href="{{ url_for('admin_user_details', user_id=user['id']) }}">View Details</a></td></tr>
+      {% else %}<tr><td colspan="9">No users found.</td></tr>{% endfor %}
+      </tbody></table></div></div>
+    </section>
+  </main>
+</div>
+{% endblock %}

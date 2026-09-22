@@ -143,7 +143,7 @@ See TESTING_GUIDE.md for all 20 tests including:
 ├─ Not logged in → Redirects to login page
 └─ Logged in → Redirects to /request-help
 
-"Become a Volunteer" Button:
+"Become a Helper" Button:
 ├─ Not logged in → Redirects to login page
 ├─ Logged in as regular user → Shows error, stays on homepage
 └─ Logged in as volunteer → Redirects to /dashboard
@@ -155,7 +155,7 @@ See TESTING_GUIDE.md for all 20 tests including:
 User logs in with role='user'
    → Automatically redirects to /request-help
 
-User logs in with role='volunteer'
+User logs in with role='helper'
    → Automatically redirects to /dashboard
 ```
 
@@ -225,7 +225,7 @@ See AUTHENTICATION_FLOW.md for production setup details.
 ```html
 <!-- Updated button links to use smart redirect routes -->
 <a href="{{ url_for('go_request_help') }}">I Need Help</a>
-<a href="{{ url_for('go_volunteer') }}">Become a Volunteer</a>
+<a href="{{ url_for('go_volunteer') }}">Become a Helper</a>
 ```
 
 ### Unchanged Files
@@ -260,7 +260,7 @@ Session is set with user data:
     ↓
 Redirect based on role:
    role='user' → /request-help
-   role='volunteer' → /dashboard
+   role='helper' → /dashboard
     ↓
 User can now access protected routes
     ↓

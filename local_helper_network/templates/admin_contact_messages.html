@@ -9,14 +9,14 @@
       <span class="sidebar-brand-icon"><i class="fas fa-shield-alt"></i></span>
       <div>
         <p class="eyebrow">Administrator</p>
-        <h2>Help R Circle</h2>
+        <h2>Help <span class="brand-r">R</span> Circle</h2>
       </div>
     </div>
 
     <nav class="dashboard-nav">
       <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-chart-line"></i> Dashboard</a>
       <a href="{{ url_for('admin_dashboard') }}#users"><i class="fas fa-users"></i> Users</a>
-      <a href="{{ url_for('admin_dashboard') }}#volunteers"><i class="fas fa-hands-helping"></i> Volunteers</a>
+      <a href="{{ url_for('admin_dashboard') }}#helpers"><i class="fas fa-hands-helping"></i> Helpers</a>
       <a href="{{ url_for('admin_dashboard') }}#requests"><i class="fas fa-clipboard-list"></i> Requests</a>
       <a href="{{ url_for('admin_contact_messages') }}" class="active"><i class="fas fa-envelope"></i> Contact Messages</a>
       <a href="{{ url_for('profile') }}"><i class="fas fa-user-cog"></i> Profile</a>
@@ -118,7 +118,10 @@
                       <button type="submit" class="btn btn-small btn-secondary">Mark Pending</button>
                     </form>
                   {% endif %}
-                  <form method="POST" action="{{ url_for('admin_delete_contact_message', msg_id=msg.id) }}" style="display: inline;" onsubmit="return confirm('Delete this message?');">
+                  <form method="POST"
+      action="{{ url_for('admin_delete_contact_message', msg_id=msg.id) }}"
+      style="display: inline;"
+      onsubmit="return confirm('Delete this message?');">
                     <button type="submit" class="btn btn-small btn-danger">Delete</button>
                   </form>
                 </div>

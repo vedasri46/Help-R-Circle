@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Become a Volunteer — Help R Circle{% endblock %}
+{% block title %}Become a Helper — Help R Circle{% endblock %}
 
 {% block content %}
 <section class="page-hero page-hero-green">
   <div class="container">
-    <h1><i class="fas fa-user-plus"></i> Volunteer Registration</h1>
+    <h1><i class="fas fa-user-plus"></i> Helper Registration</h1>
     <p>Join our community of helpers and make a real difference in someone's day.</p>
   </div>
 </section>
@@ -12,9 +12,9 @@
 <section class="section form-section">
   <div class="container form-container">
 
-    <!-- Why Volunteer Panel -->
+    <!-- Why Helper Panel -->
     <div class="form-info-panel panel-green">
-      <h3><i class="fas fa-star"></i> Why Volunteer?</h3>
+      <h3><i class="fas fa-star"></i> Why Help?</h3>
       <ul>
         <li><i class="fas fa-heart"></i> Make a genuine impact locally</li>
         <li><i class="fas fa-clock"></i> Help on your own schedule</li>
@@ -36,13 +36,13 @@
       </div>
     </div>
 
-    <!-- Volunteer Form -->
+    <!-- Helper Form -->
     <div class="form-card">
       <h2 class="form-card-title">
-        <i class="fas fa-id-card"></i> Volunteer Registration Form
+        <i class="fas fa-id-card"></i> Helper Registration Form
       </h2>
 
-      <form action="{{ url_for('volunteer') }}" method="POST" class="lhn-form" novalidate>
+      <form action="{{ url_for('helper_registration') }}" method="POST" class="lhn-form" novalidate>
 
         <div class="form-row">
           <div class="form-group">
@@ -61,10 +61,10 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+            <label for="email"><i class="fas fa-envelope"></i> Email Address <span class="required">*</span></label>
             <input type="email" id="email" name="email"
                    placeholder="e.g. aditya@email.com"
-                   value="{{ form_data.get('email', '') }}"/>
+                   value="{{ form_data.get('email', '') }}" required/>
           </div>
           <div class="form-group">
             <label for="location"><i class="fas fa-map-marker-alt"></i> Your Area / Locality <span class="required">*</span></label>
@@ -109,7 +109,7 @@
         <div class="form-group">
           <label for="about"><i class="fas fa-comment"></i> Tell Us a Little About Yourself <small>(Optional)</small></label>
           <textarea id="about" name="about" rows="3"
-                    placeholder="Why do you want to volunteer? Any relevant experience?">{{ form_data.get('about', '') }}</textarea>
+                    placeholder="Why do you want to help? Any relevant experience?">{{ form_data.get('about', '') }}</textarea>
         </div>
 
         <div class="form-notice">
@@ -119,7 +119,7 @@
         </div>
 
         <button type="submit" class="btn btn-success btn-full btn-lg">
-          <i class="fas fa-check-circle"></i> Register as Volunteer
+          <i class="fas fa-check-circle"></i> Register as Helper
         </button>
       </form>
     </div>

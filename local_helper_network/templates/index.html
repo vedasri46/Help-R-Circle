@@ -5,57 +5,55 @@
 
 <!-- ══ HERO ════════════════════════════════════════════════════════════════ -->
 <section class="hero">
-  <div class="hero-bg-pattern"></div>
   <div class="hero-container">
-    <div class="hero-text">
+    <div class="hero-text hero-entrance">
       <div class="hero-badge">
-        <i class="fas fa-heart"></i> Community Powered
+        <i class="fas fa-heart"></i> {{ t('hero_badge', 'Community Powered') }}
       </div>
       <h1 class="hero-title">
-        Helping Hands<br/>
-        <span class="hero-accent">When You Need Them Most</span>
+        {{ t('hero_title_line_1', 'Helping Hands') }}<br/>
+        <span class="hero-accent">{{ t('hero_title_line_2', 'When You Need Them Most') }}</span>
       </h1>
       <p class="hero-subtitle">
-        A trusted platform connecting elderly, injured, and people in need
-        with verified local volunteers for everyday errands — safely and free.
+        {{ t('hero_subtitle', 'A trusted platform connecting elderly, injured, and people in need with verified local helpers for everyday errands — safely and free.') }}
       </p>
       <div class="hero-buttons">
         <a href="{{ url_for('go_request_help') }}" class="btn btn-primary btn-lg">
-          <i class="fas fa-hand-paper"></i> I Need Help
+          <i class="fas fa-hand-paper"></i> {{ t('hero_primary_cta', 'I Need Help') }}
         </a>
-        <a href="{{ url_for('go_volunteer') }}" class="btn btn-outline btn-lg">
-          <i class="fas fa-user-plus"></i> Become a Volunteer
+        <a href="{{ url_for('go_helper') }}" class="btn btn-outline btn-lg">
+          <i class="fas fa-user-plus"></i> {{ t('hero_secondary_cta', 'Become a Helper') }}
         </a>
       </div>
       <div class="hero-trust">
-        <span><i class="fas fa-shield-alt"></i> Safe & Verified</span>
-        <span><i class="fas fa-clock"></i> Fast Response</span>
-        <span><i class="fas fa-rupee-sign"></i> Always Free</span>
+        <span><i class="fas fa-shield-alt"></i> {{ t('hero_safe_verified', 'Safe & Verified') }}</span>
+        <span><i class="fas fa-clock"></i> {{ t('hero_fast_response', 'Fast Response') }}</span>
+        <span><i class="fas fa-rupee-sign"></i> {{ t('hero_always_free', 'Always Free') }}</span>
       </div>
     </div>
-    <div class="hero-visual">
+    <div class="hero-visual hero-visual-entrance">
       <div class="hero-card-stack">
         <div class="hero-card hc-1">
           <div class="hc-icon"><i class="fas fa-shopping-basket"></i></div>
           <div class="hc-info">
-            <strong>Grocery Help</strong>
-            <span>Volunteer nearby</span>
+            <strong>{{ t('hero_card_grocery_title', 'Grocery Help') }}</strong>
+            <span>{{ t('hero_card_grocery_subtitle', 'Helper nearby') }}</span>
           </div>
           <span class="hc-badge urgent">Urgent</span>
         </div>
         <div class="hero-card hc-2">
           <div class="hc-icon"><i class="fas fa-pills"></i></div>
           <div class="hc-info">
-            <strong>Medicine Pickup</strong>
-            <span>3 volunteers ready</span>
+            <strong>{{ t('hero_card_medicine_title', 'Medicine Pickup') }}</strong>
+            <span>{{ t('hero_card_medicine_subtitle', '3 helpers ready') }}</span>
           </div>
           <span class="hc-badge accepted">Accepted</span>
         </div>
         <div class="hero-card hc-3">
           <div class="hc-icon"><i class="fas fa-check-circle"></i></div>
           <div class="hc-info">
-            <strong>Task Completed</strong>
-            <span>Bill paid successfully</span>
+            <strong>{{ t('hero_card_completed_title', 'Task Completed') }}</strong>
+            <span>{{ t('hero_card_completed_subtitle', 'Bill paid successfully') }}</span>
           </div>
           <span class="hc-badge done">Done ✓</span>
         </div>
@@ -65,160 +63,162 @@
 </section>
 
 <!-- ══ STATS BAR ════════════════════════════════════════════════════════════ -->
-<section class="stats-bar">
+<section class="stats-bar reveal-on-scroll">
   <div class="stats-container">
     <div class="stat-item">
       <span class="stat-num" data-target="{{ stats.total_requests }}">{{ stats.total_requests }}</span>
-      <span class="stat-label">Help Requests</span>
+      <span class="stat-label">{{ t('stats_requests', 'Help Requests') }}</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
-      <span class="stat-num" data-target="{{ stats.total_volunteers }}">{{ stats.total_volunteers }}</span>
-      <span class="stat-label">Volunteers</span>
+      <span class="stat-num" data-target="{{ stats.total_helpers }}">{{ stats.total_helpers }}</span>
+      <span class="stat-label">{{ t('stats_helpers', 'Helpers') }}</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-num" data-target="{{ stats.completed }}">{{ stats.completed }}</span>
-      <span class="stat-label">Tasks Completed</span>
+      <span class="stat-label">{{ t('stats_completed', 'Tasks Completed') }}</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-num" data-target="{{ stats.pending }}">{{ stats.pending }}</span>
-      <span class="stat-label">Awaiting Help</span>
+      <span class="stat-label">{{ t('stats_pending', 'Awaiting Help') }}</span>
     </div>
   </div>
 </section>
 
 <!-- ══ HOW IT WORKS ══════════════════════════════════════════════════════════ -->
-<section class="section how-it-works">
+<section class="section how-it-works reveal-on-scroll">
   <div class="container">
     <div class="section-header">
-      <span class="section-tag">Simple Process</span>
-      <h2>How It Works</h2>
-      <p>Getting help or giving help takes less than two minutes.</p>
+      <span class="section-tag">{{ t('section_simple_process', 'Simple Process') }}</span>
+      <h2>{{ t('section_how_it_works', 'How It Works') }}</h2>
+      <p>{{ t('section_how_it_works_subtitle', 'Getting help or giving help takes less than two minutes.') }}</p>
     </div>
 
     <div class="steps-grid">
-      <div class="step-card">
+      <div class="step-card reveal-on-scroll">
         <div class="step-num">01</div>
         <div class="step-icon"><i class="fas fa-pen-to-square"></i></div>
-        <h3>Submit a Request</h3>
-        <p>Fill in your name, location, and what you need help with. Takes under a minute.</p>
-        <a href="{{ url_for('go_request_help') }}" class="step-link">Get Started <i class="fas fa-arrow-right"></i></a>
+        <h3>{{ t('step_submit_title', 'Submit a Request') }}</h3>
+        <p>{{ t('step_submit_desc', 'Fill in your name, location, and what you need help with. Takes under a minute.') }}</p>
+        <a href="{{ url_for('go_request_help') }}" class="step-link">{{ t('step_submit_cta', 'Get Started') }} <i class="fas fa-arrow-right"></i></a>
       </div>
       <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="step-card">
+      <div class="step-card reveal-on-scroll">
         <div class="step-num">02</div>
         <div class="step-icon"><i class="fas fa-search"></i></div>
-        <h3>Volunteer Finds You</h3>
-        <p>Local volunteers browse open requests and accept the ones they can help with.</p>
-        <a href="{{ url_for('go_volunteer') }}" class="step-link">View Dashboard <i class="fas fa-arrow-right"></i></a>
+        <h3>{{ t('step_find_title', 'Helper Finds You') }}</h3>
+        <p>{{ t('step_find_desc', 'Local helpers browse open requests and accept the ones they can help with.') }}</p>
+        <a href="{{ url_for('go_helper') }}" class="step-link">{{ t('step_find_cta', 'View Dashboard') }} <i class="fas fa-arrow-right"></i></a>
       </div>
       <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="step-card">
+      <div class="step-card reveal-on-scroll">
         <div class="step-num">03</div>
         <div class="step-icon"><i class="fas fa-phone-volume"></i></div>
-        <h3>They Contact You</h3>
-        <p>The volunteer calls you directly to coordinate time, place, and specifics.</p>
+        <h3>{{ t('step_contact_title', 'They Contact You') }}</h3>
+        <p>{{ t('step_contact_desc', 'The helper calls you directly to coordinate time, place, and specifics.') }}</p>
       </div>
       <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
-      <div class="step-card">
+      <div class="step-card reveal-on-scroll">
         <div class="step-num">04</div>
         <div class="step-icon"><i class="fas fa-flag-checkered"></i></div>
-        <h3>Task Completed!</h3>
-        <p>Errand is done and marked complete. You can track status anytime with your ID.</p>
-        <a href="{{ url_for('track') }}" class="step-link">Track Request <i class="fas fa-arrow-right"></i></a>
+        <h3>{{ t('step_complete_title', 'Task Completed!') }}</h3>
+        <p>{{ t('step_complete_desc', 'Errand is done and marked complete. You can track status anytime with your ID.') }}</p>
+        <a href="{{ url_for('track') }}" class="step-link">{{ t('step_complete_cta', 'Track Request') }} <i class="fas fa-arrow-right"></i></a>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ══ SERVICES ══════════════════════════════════════════════════════════════ -->
-<section class="section services bg-tinted">
+<section class="section services bg-tinted reveal-on-scroll">
   <div class="container">
     <div class="section-header">
-      <span class="section-tag">What We Cover</span>
-      <h2>Types of Help Available</h2>
-      <p>Our volunteers assist with a wide range of daily tasks.</p>
+      <span class="section-tag">{{ t('section_what_we_cover', 'What We Cover') }}</span>
+      <h2>{{ t('section_services_title', 'Types of Help Available') }}</h2>
+      <p>{{ t('section_services_subtitle', 'Our helpers assist with a wide range of daily tasks.') }}</p>
     </div>
     <div class="services-grid">
-      <div class="service-card">
+      <div class="service-card reveal-on-scroll">
         <div class="service-icon grocery"><i class="fas fa-shopping-basket"></i></div>
-        <h3>Grocery Shopping</h3>
-        <p>Getting vegetables, fruits, groceries, and household essentials from the market.</p>
+        <h3>{{ t('service_grocery', 'Grocery Shopping') }}</h3>
+        <p>{{ t('service_grocery_desc', 'Getting vegetables, fruits, groceries, and household essentials from the market.') }}</p>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal-on-scroll">
         <div class="service-icon medicine"><i class="fas fa-pills"></i></div>
-        <h3>Medicine Collection</h3>
-        <p>Picking up prescriptions and medicines from pharmacies and medical stores.</p>
+        <h3>{{ t('service_medicine', 'Medicine Collection') }}</h3>
+        <p>{{ t('service_medicine_desc', 'Picking up prescriptions and medicines from pharmacies and medical stores.') }}</p>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal-on-scroll">
         <div class="service-icon bill"><i class="fas fa-file-invoice-dollar"></i></div>
-        <h3>Bill Payments</h3>
-        <p>Assisting with electricity, water, phone, and other bill payments in person.</p>
+        <h3>{{ t('service_bill', 'Bill Payments') }}</h3>
+        <p>{{ t('service_bill_desc', 'Assisting with electricity, water, phone, and other bill payments in person.') }}</p>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal-on-scroll">
         <div class="service-icon travel"><i class="fas fa-car-side"></i></div>
-        <h3>Travel Assistance</h3>
-        <p>Accompanying elderly or recovering patients to hospital and clinic appointments.</p>
+        <h3>{{ t('service_travel', 'Travel Assistance') }}</h3>
+        <p>{{ t('service_travel_desc', 'Accompanying elderly or recovering patients to hospital and clinic appointments.') }}</p>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal-on-scroll">
         <div class="service-icon errand"><i class="fas fa-clipboard-list"></i></div>
-        <h3>General Errands</h3>
-        <p>Post office visits, document submissions, and other daily tasks.</p>
+        <h3>{{ t('service_errand', 'General Errands') }}</h3>
+        <p>{{ t('service_errand_desc', 'Post office visits, document submissions, and other daily tasks.') }}</p>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal-on-scroll">
         <div class="service-icon other"><i class="fas fa-ellipsis-h"></i></div>
-        <h3>Other Tasks</h3>
-        <p>Have something else in mind? Submit a request and describe your need — we'll find help.</p>
+        <h3>{{ t('service_other', 'Other Tasks') }}</h3>
+        <p>{{ t('service_other_desc', 'Have something else in mind? Submit a request and describe your need — we\'ll find help.') }}</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ══ WHO WE HELP ════════════════════════════════════════════════════════════ -->
-<section class="section who-we-help">
+<section class="section who-we-help reveal-on-scroll">
   <div class="container">
     <div class="section-header">
-      <span class="section-tag">Our Community</span>
-      <h2>Who We Serve</h2>
+      <span class="section-tag">{{ t('section_community', 'Our Community') }}</span>
+      <h2>{{ t('section_who_we_serve', 'Who We Serve') }}</h2>
     </div>
     <div class="who-grid">
-      <div class="who-card">
+      <div class="who-card reveal-on-scroll">
         <div class="who-icon"><i class="fas fa-person-cane"></i></div>
-        <h3>Elderly Individuals</h3>
-        <p>Senior citizens who need support with physical tasks and daily errands.</p>
+        <h3>{{ t('who_elderly', 'Elderly Individuals') }}</h3>
+        <p>{{ t('who_elderly_desc', 'Senior citizens who need support with physical tasks and daily errands.') }}</p>
       </div>
-      <div class="who-card">
-        <div class="who-icon"><i class="fas fa-person-injured"></i></div>
-        <h3>Injured Persons</h3>
-        <p>People recovering from accidents or surgery who have limited mobility.</p>
+      <div class="who-card reveal-on-scroll">
+        <div class="who-icon">
+          <img src="{{ url_for('static', filename='images/injured_person_icon.svg') }}" alt="">
+        </div>
+        <h3>{{ t('who_injured', 'Injured Persons') }}</h3>
+        <p>{{ t('who_injured_desc', 'People recovering from accidents or surgery who have limited mobility.') }}</p>
       </div>
-      <div class="who-card">
+      <div class="who-card reveal-on-scroll">
         <div class="who-icon"><i class="fas fa-baby"></i></div>
-        <h3>New Parents</h3>
-        <p>Pregnant women and new mothers who need extra support at home.</p>
+        <h3>{{ t('who_parents', 'New Parents') }}</h3>
+        <p>{{ t('who_parents_desc', 'Pregnant women and new mothers who need extra support at home.') }}</p>
       </div>
-      <div class="who-card">
+      <div class="who-card reveal-on-scroll">
         <div class="who-icon"><i class="fas fa-house-user"></i></div>
-        <h3>Living Alone</h3>
-        <p>Individuals without family nearby who need occasional assistance.</p>
+        <h3>{{ t('who_alone', 'Living Alone') }}</h3>
+        <p>{{ t('who_alone_desc', 'Individuals without family nearby who need occasional assistance.') }}</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ══ CTA BANNER ════════════════════════════════════════════════════════════ -->
-<section class="cta-section">
+<section class="cta-section reveal-on-scroll">
   <div class="cta-content">
-    <h2>Ready to make a difference?</h2>
-    <p>Join our network of volunteers and help someone in your neighbourhood today.</p>
+    <h2>{{ t('cta_heading', 'Ready to make a difference?') }}</h2>
+    <p>{{ t('cta_subtitle', 'Join our network of helpers and help someone in your neighbourhood today.') }}</p>
     <div class="cta-buttons">
-      <a href="{{ url_for('go_volunteer') }}" class="btn btn-white btn-lg">
-        <i class="fas fa-user-plus"></i> Volunteer Now
+      <a href="{{ url_for('go_helper') }}" class="btn btn-white btn-lg">
+        <i class="fas fa-user-plus"></i> Become a Helper
       </a>
       <a href="{{ url_for('go_request_help') }}" class="btn btn-outline-white btn-lg">
-        <i class="fas fa-hand-paper"></i> Request Help
+        <i class="fas fa-hand-paper"></i> {{ t('cta_secondary', 'Request Help') }}
       </a>
     </div>
   </div>

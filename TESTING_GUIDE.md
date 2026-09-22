@@ -137,12 +137,12 @@ Open browser: **http://127.0.0.1:5000**
 
 ---
 
-### Test 8: "Become a Volunteer" Button - Not Logged In
+### Test 8: "Become a Helper" Button - Not Logged In
 
 **Steps:**
 1. Click "Logout" to ensure you're not logged in
 2. Go to homepage (`/`)
-3. Click "Become a Volunteer" button
+3. Click "Become a Helper" button
 
 **Expected:**
 - ✅ Info message: "Please log in to access the volunteer dashboard."
@@ -150,12 +150,12 @@ Open browser: **http://127.0.0.1:5000**
 
 ---
 
-### Test 9: "Become a Volunteer" Button - Logged In as User
+### Test 9: "Become a Helper" Button - Logged In as User
 
 **Steps:**
 1. Log in as `john@example.com` (user account)
 2. Go to homepage (`/`)
-3. Click "Become a Volunteer" button
+3. Click "Become a Helper" button
 
 **Expected:**
 - ✅ Error message: "Only volunteers can access the dashboard."
@@ -164,12 +164,12 @@ Open browser: **http://127.0.0.1:5000**
 
 ---
 
-### Test 10: "Become a Volunteer" Button - Logged In as Volunteer
+### Test 10: "Become a Helper" Button - Logged In as Helper
 
 **Steps:**
 1. Log in as `jane@example.com` (volunteer account)
 2. Go to homepage (`/`)
-3. Click "Become a Volunteer" button
+3. Click "Become a Helper" button
 
 **Expected:**
 - ✅ **Direct redirect to `/dashboard`**
@@ -243,7 +243,7 @@ Open browser: **http://127.0.0.1:5000**
    - Name, Phone, Location
    - Help Type dropdown
    - Description textarea
-   - Urgency level
+   - Priority level: Emergency, Urgent, or Normal
 
 ---
 
@@ -410,9 +410,9 @@ Mark as ✅ when each test passes:
 - [ ] Test 5: "I Need Help" - Not Logged In
 - [ ] Test 6: "I Need Help" - Logged In as User
 - [ ] Test 7: "I Need Help" - Logged In as Volunteer
-- [ ] Test 8: "Become a Volunteer" - Not Logged In
-- [ ] Test 9: "Become a Volunteer" - Logged In as User
-- [ ] Test 10: "Become a Volunteer" - Logged In as Volunteer
+- [ ] Test 8: "Become a Helper" - Not Logged In
+- [ ] Test 9: "Become a Helper" - Logged In as User
+- [ ] Test 10: "Become a Helper" - Logged In as Helper
 - [ ] Test 11: Direct Dashboard - Not Logged In
 - [ ] Test 12: Direct Dashboard - Logged In as User
 - [ ] Test 13: Direct Dashboard - Logged In as Volunteer

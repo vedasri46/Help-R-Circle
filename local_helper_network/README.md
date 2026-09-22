@@ -19,7 +19,7 @@ local_helper_network/
     ├── base.html        ← Shared layout (navbar, footer, flash)
     ├── index.html       ← Home page
     ├── request_help.html← Submit a help request
-    ├── volunteer.html   ← Volunteer registration
+    ├── volunteer.html   ← Helper registration
     ├── dashboard.html   ← View & accept requests
     ├── track.html       ← Track request by ID
     ├── about.html       ← About the project
@@ -91,7 +91,7 @@ Visit: **http://127.0.0.1:5000**
 |-------------------|------------------|--------------------------------|
 | Home              | /                | Landing page with stats        |
 | Request Help      | /request-help    | Submit a help request          |
-| Volunteer Sign-Up | /volunteer       | Register as a volunteer        |
+| Helper Sign-Up | /volunteer       | Register as a helper           |
 | Dashboard         | /dashboard       | View & manage all requests     |
 | Track Request     | /track           | Check request status by ID     |
 | About             | /about           | Project info & mission         |
@@ -110,9 +110,9 @@ Visit: **http://127.0.0.1:5000**
 | location       | TEXT    | Area / locality                        |
 | help_type      | TEXT    | Type of help needed                    |
 | description    | TEXT    | Detailed description                   |
-| urgency        | TEXT    | urgent / normal / low                  |
+| priority       | TEXT    | emergency / urgent / normal            |
 | status         | TEXT    | pending → accepted → completed         |
-| volunteer_name | TEXT    | Name of volunteer who accepted (null)  |
+| volunteer_name | TEXT    | Name of helper who accepted (null)  |
 | created_at     | TEXT    | Timestamp when submitted               |
 | updated_at     | TEXT    | Timestamp of last status change        |
 
@@ -120,7 +120,7 @@ Visit: **http://127.0.0.1:5000**
 | Column       | Type    | Description                      |
 |--------------|---------|----------------------------------|
 | id           | INTEGER | Auto-incrementing primary key    |
-| name         | TEXT    | Volunteer's full name            |
+| name         | TEXT    | Helper's full name               |
 | phone        | TEXT    | Contact number                   |
 | email        | TEXT    | Email (optional)                 |
 | location     | TEXT    | Area they can serve              |
@@ -143,10 +143,10 @@ Visit: **http://127.0.0.1:5000**
 
 ## ✨ Features Summary
 
-- ✅ Submit help requests (with urgency levels)
-- ✅ Volunteer registration (with skill checkboxes)
-- ✅ Volunteer dashboard with search & filter
-- ✅ Accept requests (with volunteer name)
+- ✅ Submit help requests (with priority levels)
+- ✅ Helper registration (with skill checkboxes)
+- ✅ Helper dashboard with search & filter
+- ✅ Accept requests (with helper name)
 - ✅ Mark requests as completed
 - ✅ Cancel requests
 - ✅ Track any request by ID with visual timeline
@@ -161,10 +161,10 @@ Visit: **http://127.0.0.1:5000**
 
 ## 💡 Suggestions for Improvement
 
-1. **Login / Auth** — Add Flask-Login for volunteer accounts
-2. **Email Notifications** — Use Flask-Mail to notify volunteers of new requests
+1. **Login / Auth** — Add Flask-Login for helper accounts
+2. **Email Notifications** — Use Flask-Mail to notify helpers of new requests
 3. **Map Integration** — Show requests on a Google Maps widget
-4. **Ratings** — Allow requesters to rate volunteers after completion
+4. **Ratings** — Allow requesters to rate helpers after completion
 5. **Admin Panel** — Flask-Admin for full admin control
 6. **Export** — Download requests as CSV / PDF reports
 

@@ -17,7 +17,7 @@
 
       <div class="profile-actions">
         <a href="{{ url_for('edit_profile') }}" class="btn btn-secondary">Edit Profile</a>
-        <button type="button" class="btn btn-ghost" disabled>Change Password</button>
+        <button type="submit" form="change-password-form" class="btn btn-ghost">Change Password</button>
       </div>
     </section>
 
@@ -62,13 +62,33 @@
         </div>
       </article>
 
+      <article class="profile-card">
+        <h2>Change password</h2>
+        <form id="change-password-form" method="POST" action="{{ url_for('profile') }}">
+          <div class="profile-info">
+            <div>
+              <label for="current_password">Current Password</label>
+              <input id="current_password" name="current_password" type="password" class="form-input" required>
+            </div>
+            <div>
+              <label for="new_password">New Password</label>
+              <input id="new_password" name="new_password" type="password" class="form-input" required>
+            </div>
+            <div>
+              <label for="confirm_password">Confirm New Password</label>
+              <input id="confirm_password" name="confirm_password" type="password" class="form-input" required>
+            </div>
+          </div>
+        </form>
+      </article>
+
       <article class="profile-card activity-card">
         <h2>Admin notes</h2>
-        <p>System statistics and deeper insights are available on the admin dashboard. Use the dashboard to review users, volunteers, and help requests.</p>
+        <p>System statistics and deeper insights are available on the admin dashboard. Use the dashboard to review users, helpers, and help requests.</p>
         <ul>
           <li><i class="fas fa-check-circle"></i> Secure admin access</li>
           <li><i class="fas fa-tasks"></i> Review system requests</li>
-          <li><i class="fas fa-users"></i> Manage volunteers and users</li>
+          <li><i class="fas fa-users"></i> Manage helpers and users</li>
         </ul>
       </article>
     </section>
@@ -79,7 +99,6 @@
       <h2>Quick actions</h2>
       <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary btn-full">Go to Dashboard</a>
       <a href="{{ url_for('logout') }}" class="btn btn-outline btn-full">Logout</a>
-      <p class="small-note">Change password functionality is not yet available in this admin profile view.</p>
     </div>
   </aside>
 </div>

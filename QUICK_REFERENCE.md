@@ -39,7 +39,7 @@ Homepage
   │     ├─ NOT logged in → /login
   │     └─ Logged in → /request-help
   │
-  └─ "Become a Volunteer" button
+        └─ "Become a Helper" button
      └─ /go-volunteer (checks login & role)
         ├─ NOT logged in → /login
         ├─ Not volunteer → / (with error)

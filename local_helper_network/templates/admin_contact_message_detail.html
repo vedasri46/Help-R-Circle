@@ -9,14 +9,14 @@
       <span class="sidebar-brand-icon"><i class="fas fa-shield-alt"></i></span>
       <div>
         <p class="eyebrow">Administrator</p>
-        <h2>Help R Circle</h2>
+        <h2>Help <span class="brand-r">R</span> Circle</h2>
       </div>
     </div>
 
     <nav class="dashboard-nav">
       <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-chart-line"></i> Overview</a>
       <a href="{{ url_for('admin_dashboard') }}#users"><i class="fas fa-users"></i> Users</a>
-      <a href="{{ url_for('admin_dashboard') }}#volunteers"><i class="fas fa-hands-helping"></i> Volunteers</a>
+      <a href="{{ url_for('admin_dashboard') }}#helpers"><i class="fas fa-hands-helping"></i> Helpers</a>
       <a href="{{ url_for('admin_dashboard') }}#requests"><i class="fas fa-clipboard-list"></i> Requests</a>
       <a href="{{ url_for('admin_contact_messages') }}" class="active"><i class="fas fa-envelope"></i> Contact Messages</a>
       <a href="{{ url_for('profile') }}"><i class="fas fa-user-cog"></i> Profile</a>
@@ -80,7 +80,9 @@
               </form>
             {% endif %}
 
-            <form method="POST" action="{{ url_for('admin_delete_contact_message', msg_id=message.id) }}" onsubmit="return confirm('Delete this message permanently?');">
+            <form method="POST"
+              action="{{ url_for('admin_delete_contact_message', msg_id=message.id) }}"
+              onsubmit="return confirm({{ t('confirm_delete_message', 'Delete this message permanently?')|tojson }});">
               <button type="submit" class="btn btn-danger">
                 <i class="fas fa-trash-alt"></i> Delete Message
               </button>
@@ -90,6 +92,16 @@
               <i class="fas fa-arrow-left"></i> Back
             </a>
           </div>
+        </div>
+
+        <div class="response-panel">
+          <h3>Send a Response</h3>
+          <form method="POST" action="{{ url_for('admin_respond_to_contact_message', msg_id=message.id) }}" class="response-form">
+            <textarea name="response" rows="5" placeholder="Write a response for the sender..." required></textarea>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> Send Response
+            </button>
+          </form>
         </div>
       </div>
     </section>
@@ -212,6 +224,34 @@
     justify-content: center;
     gap: 8px;
     text-decoration: none;
+  }
+
+  .response-panel {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(226, 232, 240, .5);
+  }
+
+  .response-panel h3 {
+    margin: 0 0 16px;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+  }
+
+  .response-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .response-form textarea {
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 10px;
+    padding: 14px 16px;
+    min-height: 120px;
+    resize: vertical;
+    font: inherit;
   }
 
   .btn-success {

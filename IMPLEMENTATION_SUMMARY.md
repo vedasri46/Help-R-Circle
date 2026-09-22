@@ -107,7 +107,7 @@ def cancel_request(req_id):
   <i class="fas fa-hand-paper"></i> I Need Help
 </a>
 <a href="{{ url_for('volunteer') }}" class="btn btn-outline btn-lg">
-  <i class="fas fa-user-plus"></i> Become a Volunteer
+    <i class="fas fa-user-plus"></i> Become a Helper
 </a>
 ```
 
@@ -117,7 +117,7 @@ def cancel_request(req_id):
   <i class="fas fa-hand-paper"></i> I Need Help
 </a>
 <a href="{{ url_for('go_volunteer') }}" class="btn btn-outline btn-lg">
-  <i class="fas fa-user-plus"></i> Become a Volunteer
+    <i class="fas fa-user-plus"></i> Become a Helper
 </a>
 ```
 
@@ -158,26 +158,26 @@ This hides the Dashboard link for non-volunteers.
 4. `/go-request-help` checks: Is `user_id` in session? YES
 5. Redirects directly to `/request-help` (form)
 
-### Scenario 3: Non-logged-in user clicks "Become a Volunteer"
+### Scenario 3: Non-logged-in user clicks "Become a Helper"
 1. User is on homepage
-2. Clicks "Become a Volunteer" button
+2. Clicks "Become a Helper" button
 3. Gets redirected to `/go-volunteer`
 4. `/go-volunteer` checks: Is `user_id` in session? NO
 5. Shows flash message: "Please log in to access the volunteer dashboard."
 6. Redirects to `/login`
 
-### Scenario 4: Logged-in user (regular) clicks "Become a Volunteer"
+### Scenario 4: Logged-in user (regular) clicks "Become a Helper"
 1. User is on homepage (logged in as "user" role)
-2. Clicks "Become a Volunteer" button
+2. Clicks "Become a Helper" button
 3. Gets redirected to `/go-volunteer`
 4. `/go-volunteer` checks: Is `user_id` in session? YES
 5. `/go-volunteer` checks: Is role == 'volunteer'? NO
 6. Shows flash message: "Only volunteers can access the dashboard."
 7. Redirects to homepage
 
-### Scenario 5: Logged-in volunteer clicks "Become a Volunteer"
+### Scenario 5: Logged-in helper clicks "Become a Helper"
 1. User is on homepage (logged in as "volunteer" role)
-2. Clicks "Become a Volunteer" button
+2. Clicks "Become a Helper" button
 3. Gets redirected to `/go-volunteer`
 4. `/go-volunteer` checks: Is `user_id` in session? YES
 5. `/go-volunteer` checks: Is role == 'volunteer'? YES
@@ -195,7 +195,7 @@ This hides the Dashboard link for non-volunteers.
 - [ ] As a logged-in user, try accessing `/dashboard` directly → Should be redirected with error
 - [ ] Logout → Should clear session and show goodbye message
 - [ ] Try clicking "I Need Help" without logging in → Should go to login page
-- [ ] Try clicking "Become a Volunteer" without logging in → Should go to login page
+- [ ] Try clicking "Become a Helper" without logging in → Should go to login page
 - [ ] Dashboard link should only appear in navbar for volunteers
 - [ ] Flash messages appear for all actions
 

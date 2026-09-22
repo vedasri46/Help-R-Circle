@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Location Map - Admin - Help R Circle{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  .admin-map-shell { display: flex; flex-direction: column; gap: 20px; }
+  .admin-map-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .admin-map-toolbar .btn.active { background: var(--primary); color: #fff; }
+  .admin-map-search { min-width: 240px; flex: 1; max-width: 360px; }
+  .admin-location-map { min-height: 620px; width: 100%; border-radius: 18px; overflow: hidden; border: 1px solid #E5E7EB; }
+  .admin-map-note { color: var(--text-muted); margin: 0; }
+  .admin-map-legend { display: flex; gap: 18px; flex-wrap: wrap; color: var(--text-muted); font-size: .9rem; }
+  .map-legend-item { display: inline-flex; align-items: center; gap: 7px; }
+  .map-legend-dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+  .map-legend-user { background: #0F766E; }
+  .map-legend-helper { background: #E85D04; }
+  .map-legend-request { background: #2563EB; }
+  .map-legend-pair { background: #7C3AED; }
+  .admin-map-empty { padding: 30px; background: #F8FAFC; border-radius: 12px; color: var(--text-muted); }
+  @media (max-width: 700px) { .admin-location-map { min-height: 480px; } .admin-map-toolbar { align-items: stretch; } .admin-map-toolbar > * { width: 100%; max-width: none; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-root">
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-brand"><span class="sidebar-brand-icon"><i class="fas fa-shield-alt"></i></span><div><p class="eyebrow">Administrator</p><h2>Help <span class="brand-r">R</span> Circle</h2></div></div>
+    <nav class="dashboard-nav">
+      <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-chart-line"></i> Dashboard</a>
+      <a href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Users</a>
+      <a href="{{ url_for('admin_helpers') }}"><i class="fas fa-hands-helping"></i> Helpers</a>
+      <a class="active" href="{{ url_for('admin_map') }}"><i class="fas fa-map-marked-alt"></i> Location Map</a>
+      <a href="{{ url_for('admin_contact_messages') }}"><i class="fas fa-envelope"></i> Contact Messages</a>
+    </nav>
+  </aside>
+  <main class="dashboard-main">
+    <section class="dashboard-header"><div><p class="eyebrow">Administrator Panel</p><h1>Location Map</h1><p>Review registered locations, request destinations, and shared helper locations.</p></div><a class="btn btn-outline" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a></section>
+    <section class="dashboard-section admin-map-shell">
+      <div class="section-header"><div><h2>Network Locations</h2><p id="adminMapSummary" class="admin-map-note">Loading locations...</p></div></div>
+      <div class="admin-map-toolbar" role="toolbar" aria-label="Location map filters">
+        <button class="btn btn-secondary active" type="button" data-map-filter="all">Show All</button>
+        <button class="btn btn-secondary" type="button" data-map-filter="users">Users Only</button>
+        <button class="btn btn-secondary" type="button" data-map-filter="helpers">Helpers Only</button>
+        <button class="btn btn-secondary" type="button" data-map-filter="active">Active Requests</button>
+        <button class="btn btn-secondary" type="button" data-map-filter="assigned">Assigned User + Helper</button>
+        <input class="form-input admin-map-search" id="adminMapSearch" type="search" placeholder="Search names, addresses, request IDs..." aria-label="Search map locations">
+      </div>
+      <div class="admin-map-legend" aria-label="Map legend"><span class="map-legend-item"><i class="map-legend-dot map-legend-user"></i>User</span><span class="map-legend-item"><i class="map-legend-dot map-legend-helper"></i>Helper</span><span class="map-legend-item"><i class="map-legend-dot map-legend-request"></i>Request location</span><span class="map-legend-item"><i class="map-legend-dot map-legend-pair"></i>Assigned helper</span></div>
+      <div id="adminLocationMap" class="admin-location-map" aria-label="Admin network location map"></div>
+      <p id="adminMapEmpty" class="admin-map-empty" hidden>No matching locations with valid coordinates were found.</p>
+    </section>
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const mapElement = document.getElementById('adminLocationMap');
+    const summary = document.getElementById('adminMapSummary');
+    const emptyMessage = document.getElementById('adminMapEmpty');
+    const searchInput = document.getElementById('adminMapSearch');
+    const filterButtons = document.querySelectorAll('[data-map-filter]');
+    const data = {{ map_data|tojson }};
+    if (!mapElement || typeof L === 'undefined') {
+      if (summary) summary.textContent = 'The map could not be loaded. Please refresh and try again.';
+      return;
+    }
+
+    const map = L.map(mapElement, { zoomControl: true }).setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    const layers = L.layerGroup().addTo(map);
+    const lines = L.layerGroup().addTo(map);
+    let activeFilter = 'all';
+
+    function safe(value) {
+      return String(value == null || value === '' ? '—' : value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character]));
+    }
+    function icon(color, symbol) {
+      return L.divIcon({ className: 'admin-map-marker', html: '<span style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:' + color + ';color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.28);font-size:14px">' + symbol + '</span>', iconSize: [32, 32], iconAnchor: [16, 16] });
+    }
+    function textFor(item) {
+      return JSON.stringify(item).toLowerCase();
+    }
+    function matches(item, query) { return !query || textFor(item).includes(query); }
+    function addMarker(point, markerIcon, popup) {
+      if (!point) return null;
+      return L.marker(point, { icon: markerIcon }).bindPopup(popup).addTo(layers);
+    }
+    function render() {
+      layers.clearLayers(); lines.clearLayers();
+      const query = (searchInput.value || '').trim().toLowerCase();
+      const points = [];
+      let visible = 0;
+      if (activeFilter === 'all' || activeFilter === 'users') {
+        data.users.filter(item => matches(item, query)).forEach(item => {
+          addMarker(item.point, icon('#0F766E', 'U'), '<strong>User</strong><br>Name: ' + safe(item.name) + '<br>Phone: ' + safe(item.phone) + '<br>Address: ' + safe(item.address) + '<br>Role: User' + (item.request_id ? '<br>Request #' + safe(item.request_id) + '<br>Help Type: ' + safe(item.help_type) + '<br>Status: ' + safe(item.status) + '<br>Assigned Helper: ' + safe(item.assigned_helper || 'Not Assigned') : ''));
+          points.push(item.point); visible++;
+        });
+      }
+      if (activeFilter === 'all' || activeFilter === 'helpers') {
+        data.helpers.filter(item => matches(item, query)).forEach(item => {
+          addMarker(item.point, icon('#E85D04', 'H'), '<strong>Helper</strong><br>Name: ' + safe(item.name) + '<br>Phone: ' + safe(item.phone) + '<br>Address: ' + safe(item.address) + '<br>Role: Helper<br>Availability: ' + safe(item.availability) + '<br>Location source: ' + safe(item.location_source) + (item.updated_at ? '<br>Updated: ' + safe(item.updated_at) : ''));
+          if (item.point) { points.push(item.point); visible++; }
+        });
+      }
+      const requestItems = data.requests.filter(item => matches(item, query) && ((activeFilter === 'active') || (activeFilter === 'assigned' && item.helper_id) || activeFilter === 'all'));
+      if (activeFilter === 'all' || activeFilter === 'active' || activeFilter === 'assigned') {
+        requestItems.forEach(item => {
+          if (activeFilter === 'assigned' && !item.helper_id) return;
+          if (item.request_point) {
+            addMarker(item.request_point, icon('#2563EB', 'R'), '<strong>Request #' + safe(item.id) + '</strong><br>User: ' + safe(item.user_name) + '<br>Type: ' + safe(item.help_type) + '<br>Status: ' + safe(item.status) + '<br>Location: ' + safe(item.address) + (item.helper_name ? '<br>Helper: ' + safe(item.helper_name) : ''));
+            points.push(item.request_point); visible++;
+          }
+          if (item.helper_point && item.helper_id) {
+            addMarker(item.helper_point, icon('#7C3AED', 'H'), '<strong>Assigned helper</strong><br>Request #' + safe(item.id) + '<br>Name: ' + safe(item.helper_name) + '<br>Status: ' + safe(item.status) + (item.helper_updated_at ? '<br>Updated: ' + safe(item.helper_updated_at) : ''));
+            points.push(item.helper_point); visible++;
+            if (item.request_point) L.polyline([item.request_point, item.helper_point], { color: '#7C3AED', weight: 3, opacity: .65, dashArray: '7 6' }).addTo(lines);
+          }
+        });
+      }
+      summary.textContent = visible + (visible === 1 ? ' location shown' : ' locations shown') + ' · ' + data.requests.length + ' active request' + (data.requests.length === 1 ? '' : 's');
+      emptyMessage.hidden = visible !== 0;
+      if (points.length === 1) map.setView(points[0], 14);
+      else if (points.length > 1) map.fitBounds(L.latLngBounds(points).pad(.2));
+      else map.setView([0, 0], 2);
+      window.requestAnimationFrame(() => map.invalidateSize());
+    }
+    filterButtons.forEach(button => button.addEventListener('click', () => { activeFilter = button.dataset.mapFilter; filterButtons.forEach(item => item.classList.toggle('active', item === button)); render(); }));
+    searchInput.addEventListener('input', render);
+    render();
+  });
+</script>
+{% endblock %}

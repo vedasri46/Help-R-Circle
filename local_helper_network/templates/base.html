@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{% block title %}Help R Circle{% endblock %}</title>
 
-  <!-- Google Fonts: Fraunces (display) + DM Sans (body) -->
+  <!-- Google Fonts: Poppins (display) + DM Sans (body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 
   <!-- Font Awesome icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -17,56 +17,86 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
   {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body data-user-id="{{ session.get('user_id') or '' }}">
 
 <!-- ══ NAVIGATION ══════════════════════════════════════════════════════════ -->
 <nav class="navbar" id="navbar">
   <div class="nav-container">
     <!-- Logo -->
-    <a href="{{ url_for('index') }}" class="nav-logo">
-      <img src="{{ url_for('static', filename='images/help_r_circle_logo.png') }}" alt="Help R Circle logo" class="brand-logo" />
-      <span class="logo-text">Help R <strong>Circle</strong></span>
-    </a>
+    <div class="nav-logo">
+      <a href="{{ url_for('logo_view') }}" target="_blank" rel="noopener noreferrer">
+        <img src="{{ url_for('static', filename='images/help_r_circle_logo.png') }}" alt="Help R Circle Logo" class="brand-logo" />
+      </a>
+      <a href="{{ url_for('index') }}" class="logo-text brand-name">Help <span class="brand-r">R</span> Circle</a>
+    </div>
 
-    <!-- Desktop Links -->
+    <!-- Main navigation -->
     <ul class="nav-links" id="navLinks">
-      <li><a href="{{ url_for('index') }}"        class="nav-link {% if request.endpoint=='index' %}active{% endif %}">Home</a></li>
-      <li><a href="{{ url_for('go_request_help') }}" class="nav-link {% if request.endpoint=='request_help' or request.endpoint=='go_request_help' %}active{% endif %}">Get Help</a></li>
-      <li><a href="{{ url_for('go_volunteer') }}"    class="nav-link {% if request.endpoint=='volunteer' or request.endpoint=='go_volunteer' %}active{% endif %}">Volunteer</a></li>
-      {% if session.get('role') == 'volunteer' %}
-      <li><a href="{{ url_for('dashboard') }}"    class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}">Dashboard</a></li>
-      {% elif session.get('role') == 'user' %}
-      <li><a href="{{ url_for('user_dashboard') }}" class="nav-link {% if request.endpoint=='user_dashboard' %}active{% endif %}">My Requests</a></li>
-      {% elif session.get('role') == 'admin' %}
-      <li><a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint=='admin_dashboard' %}active{% endif %}">Admin Panel</a></li>
-      {% endif %}
-      <li><a href="{{ url_for('track') }}"        class="nav-link {% if request.endpoint=='track' %}active{% endif %}">Track</a></li>
-      <li><a href="{{ url_for('about') }}"        class="nav-link {% if request.endpoint=='about' %}active{% endif %}">About</a></li>
-      {% if session.get('role') == 'admin' %}
-      <li><a href="{{ url_for('admin_contact_messages') }}" class="nav-link {% if request.endpoint=='admin_contact_messages' %}active{% endif %}">Contact Messages</a></li>
-      {% else %}
-      <li><a href="{{ url_for('contact') }}"      class="nav-link {% if request.endpoint=='contact' %}active{% endif %}">Contact Us</a></li>
+      <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint=='index' %}active{% endif %}">{{ t('nav_home', 'Home') }}</a></li>
+      <li><a href="{{ url_for('go_request_help') }}" class="nav-link {% if request.endpoint=='request_help' or request.endpoint=='go_request_help' %}active{% endif %}">{{ t('nav_get_help', 'Get Help') }}</a></li>
+      <li><a href="{{ url_for('go_helper') }}" class="nav-link {% if request.endpoint=='helper_registration' or request.endpoint=='go_helper' %}active{% endif %}">{{ t('nav_helper', 'Helper') }}</a></li>
+      <li><a href="{{ url_for('track') }}" class="nav-link {% if request.endpoint=='track' %}active{% endif %}">{{ t('nav_track', 'Track') }}</a></li>
+      <li><a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint=='about' %}active{% endif %}">{{ t('nav_about', 'About') }}</a></li>
+      {% if session.get('role') != 'admin' %}
+      <li><a href="{{ url_for('contact') }}" class="nav-link {% if request.endpoint=='contact' %}active{% endif %}">{% if session.get('user_id') %}{{ t('nav_contact_messages', 'Contact Messages') }}{% else %}{{ t('nav_contact_us', 'Contact') }}{% endif %}</a></li>
       {% endif %}
     </ul>
 
-    <!-- CTA + Hamburger -->
+    <!-- Account actions + hamburger -->
     <div class="nav-actions">
+      <form class="language-switcher" action="{{ url_for('set_language', lang='en') }}" method="get">
+        <label class="sr-only" for="language-select">{{ t('language_label', 'Language') }}</label>
+        <select id="language-select" class="language-select" onchange="window.location.href='{{ url_for('set_language', lang='__LANG__') }}'.replace('__LANG__', this.value)">
+          {% for code, label in available_locales.items() %}
+          <option value="{{ code }}" {% if current_lang == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </form>
       {% if session.get('user_id') %}
         <!-- User is logged in -->
         <div class="user-menu">
+          <div class="notification-wrapper">
+            <button class="notification-bell" id="notificationBell" aria-label="Notifications" title="Notifications">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge hidden" id="notificationBadge">0</span>
+            </button>
+            <div class="notification-panel hidden" id="notificationPanel">
+              <div class="notification-header">
+                <strong>Notifications</strong>
+                <button type="button" class="notification-mark-all" id="markAllReadBtn">Mark all read</button>
+              </div>
+              <div class="notification-list" id="notificationList"></div>
+            </div>
+          </div>
           {% if session.get('role') == 'admin' %}
-          <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline btn-sm">Admin Panel</a>
+          <details class="account-menu">
+            <summary><i class="fas fa-shield-alt"></i><span>Admin</span><i class="fas fa-chevron-down account-chevron"></i></summary>
+            <div class="account-menu-panel">
+              <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-chart-line"></i> Dashboard</a>
+              <a href="{{ url_for('admin_contact_messages') }}"><i class="fas fa-envelope"></i> Contact Messages</a>
+              <a href="{{ url_for('profile') }}"><i class="fas fa-user-cog"></i> Profile</a>
+              <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+          </details>
+          {% else %}
+          <details class="account-menu">
+            <summary><i class="fas fa-user-circle"></i><span>{{ session.get('username') }}</span><i class="fas fa-chevron-down account-chevron"></i></summary>
+            <div class="account-menu-panel">
+              {% if session.get('role') in ['helper', 'helper'] %}
+              <a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-line"></i> {{ t('nav_dashboard', 'Dashboard') }}</a>
+              {% elif session.get('role') == 'user' %}
+              <a href="{{ url_for('user_dashboard') }}"><i class="fas fa-clipboard-list"></i> {{ t('nav_my_requests', 'My Requests') }}</a>
+              {% endif %}
+              <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> Profile</a>
+              <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> {{ t('nav_logout', 'Logout') }}</a>
+            </div>
+          </details>
           {% endif %}
-          <a href="{{ url_for('profile') }}" class="user-greeting" title="View profile">
-            <i class="fas fa-user-circle"></i>
-            {{ session.get('username') }}
-          </a>
-          <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Logout</a>
         </div>
       {% else %}
         <!-- User is not logged in -->
-        <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm">Login</a>
-        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-sm nav-cta">Sign Up</a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm">{{ t('nav_login', 'Login') }}</a>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-sm nav-cta">{{ t('nav_sign_up', 'Sign Up') }}</a>
       {% endif %}
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -101,46 +131,49 @@
 <footer class="footer">
   <div class="footer-container">
     <div class="footer-brand">
-      <a href="{{ url_for('index') }}" class="nav-logo footer-logo">
-        <img src="{{ url_for('static', filename='images/help_r_circle_logo.png') }}" alt="Help R Circle logo" class="brand-logo footer-brand-logo" />
-        <span class="logo-text">Help R <strong>Circle</strong></span>
-      </a>
-      <p class="footer-tagline">Connecting communities, one helping hand at a time.</p>
+      <div class="nav-logo footer-logo">
+        <a href="{{ url_for('logo_view') }}" target="_blank" rel="noopener noreferrer">
+          <img src="{{ url_for('static', filename='images/help_r_circle_logo.png') }}" alt="Help R Circle Logo" class="brand-logo footer-brand-logo" />
+        </a>
+        <a href="{{ url_for('index') }}" class="logo-text brand-name">Help <span class="brand-r">R</span> Circle</a>
+      </div>
+      <p class="footer-tagline">{{ t('footer_tagline', 'Connecting communities, one helping hand at a time.') }}</p>
     </div>
 
     <div class="footer-links">
       <div class="footer-col">
-        <h4>Quick Links</h4>
+        <h4>{{ t('footer_quick_links', 'Quick Links') }}</h4>
         <ul>
-          <li><a href="{{ url_for('go_request_help') }}">Request Help</a></li>
-          <li><a href="{{ url_for('go_volunteer') }}">Become a Volunteer</a></li>
-          <li><a href="{{ url_for('go_volunteer') }}">Dashboard</a></li>
-          <li><a href="{{ url_for('track') }}">Track Request</a></li>
+          <li><a href="{{ url_for('go_request_help') }}">{{ t('footer_request_help', 'Request Help') }}</a></li>
+          <li><a href="{{ url_for('go_helper') }}">{{ t('footer_become_helper', 'Become a Helper') }}</a></li>
+          <li><a href="{{ url_for('go_helper') }}">{{ t('footer_dashboard', 'Dashboard') }}</a></li>
+          <li><a href="{{ url_for('track') }}">{{ t('footer_track_request', 'Track Request') }}</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4>About</h4>
+        <h4>{{ t('footer_about', 'About') }}</h4>
         <ul>
-          <li><a href="{{ url_for('about') }}">Our Mission</a></li>
-          <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+          <li><a href="{{ url_for('about') }}">{{ t('footer_our_mission', 'Our Mission') }}</a></li>
+          <li><a href="{{ url_for('contact') }}">{{ t('footer_contact_us', 'Contact Us') }}</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Help Types</h4>
+        <h4>{{ t('footer_help_types', 'Help Types') }}</h4>
         <ul>
-          <li><i class="fas fa-shopping-basket"></i> Grocery Shopping</li>
-          <li><i class="fas fa-pills"></i> Medicine Collection</li>
-          <li><i class="fas fa-file-invoice"></i> Bill Payment</li>
-          <li><i class="fas fa-car"></i> Travel Assistance</li>
+          <li><i class="fas fa-shopping-basket"></i> {{ t('service_grocery', 'Grocery Shopping') }}</li>
+          <li><i class="fas fa-pills"></i> {{ t('service_medicine', 'Medicine Collection') }}</li>
+          <li><i class="fas fa-file-invoice"></i> {{ t('service_bill', 'Bill Payment') }}</li>
+          <li><i class="fas fa-car"></i> {{ t('service_travel', 'Travel Assistance') }}</li>
         </ul>
       </div>
     </div>
   </div>
   <div class="footer-bottom">
-    <p>&copy; 2026 Help R Circle &mdash; Built with ❤️ for communities</p>
+    <p>&copy; 2026 <span class="brand-name">Help <span class="brand-r">R</span> Circle</span> &mdash; {{ t('footer_built_with', 'Built with ❤️ for communities') }}</p>
   </div>
 </footer>
 
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block extra_js %}{% endblock %}
 </body>

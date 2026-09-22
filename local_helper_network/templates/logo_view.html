@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help R Circle</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --logo-teal: #0b5c57;
+      --logo-orange: #e85d04;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at center, rgba(11, 92, 87, .2), transparent 42%),
+        #101827;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .logo-stage {
+      display: grid;
+      justify-items: center;
+      gap: 24px;
+      padding: 32px;
+    }
+
+    .logo-frame {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: min(72vw, 520px);
+      aspect-ratio: 1;
+      animation: logoEntrance 1.2s ease-out both, logoFloat 4.5s ease-in-out 1.2s infinite;
+    }
+
+    .logo-frame::before {
+      content: "";
+      position: absolute;
+      width: min(58vw, 400px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--logo-teal);
+      filter: blur(50px);
+      opacity: .28;
+      animation: glowPulse 4.5s ease-in-out 1.2s infinite;
+    }
+
+    .logo-frame::after {
+      content: "";
+      position: absolute;
+      width: 92%;
+      height: 92%;
+      border: 1px solid rgba(244, 162, 97, .24);
+      border-radius: 50%;
+      animation: ringReveal 1.4s ease-out both, ringFloat 8s ease-in-out 1.4s infinite;
+    }
+
+    .logo-frame img {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .35));
+    }
+
+    .logo-caption {
+      margin: 0;
+      color: rgba(255, 255, 255, .78);
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      letter-spacing: .08em;
+      text-align: center;
+    }
+
+    @keyframes logoEntrance {
+      from { opacity: 0; transform: scale(.75); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { opacity: .22; transform: scale(.94); }
+      50% { opacity: .38; transform: scale(1.04); }
+    }
+
+    @keyframes ringReveal {
+      from { opacity: 0; transform: scale(.86) rotate(-12deg); }
+      to { opacity: 1; transform: scale(1) rotate(0); }
+    }
+
+    @keyframes ringFloat {
+      0%, 100% { transform: rotate(0); }
+      50% { transform: rotate(3deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .logo-frame, .logo-frame::before, .logo-frame::after { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="logo-stage" aria-label="Help R Circle logo presentation">
+    <div class="logo-frame">
+      <img src="{{ url_for('static', filename='images/help_r_circle_logo.png') }}" alt="Help R Circle Logo">
+    </div>
+    <p class="logo-caption">Help R Circle</p>
+  </main>
+</body>
+</html>

@@ -24,6 +24,7 @@
             <tr>
               <th>Request ID</th>
               <th>Title</th>
+              <th>Priority</th>
               <th>Description</th>
               <th>User Name</th>
               <th>Completed At</th>
@@ -35,6 +36,7 @@
             <tr>
               <td>#{{ req['id'] }}</td>
               <td>{{ req['help_type'] }}</td>
+              <td><span class="priority-badge priority-badge-{{ req['priority'] or 'normal' }}">{% if req['priority'] == 'emergency' %}🔴 Emergency{% elif req['priority'] == 'urgent' %}🟡 Urgent{% else %}🟢 Normal{% endif %}</span></td>
               <td>{{ req['description'][:90] }}{% if req['description']|length > 90 %}…{% endif %}</td>
               <td>{{ req['name'] or 'Unknown' }}</td>
               <td>{{ req['completed_at'] or 'N/A' }}</td>

@@ -12,8 +12,12 @@
 
 <section class="section">
   <div class="container" style="max-width: 640px;">
-    <div class="form-card">
-      <form method="POST" class="lhn-form">
+    <div class="form-card user-edit-card">
+      <div class="form-intro">
+        <span class="form-icon"><i class="fas fa-user-pen"></i></span>
+        <div><p class="form-kicker">Keep your details current</p><h2>User Profile</h2><p>Manage your contact details and address.</p></div>
+      </div>
+      <form method="POST" class="lhn-form" id="userProfileForm">
         
         <div class="form-group">
           <label for="username"><i class="fas fa-user"></i> Username</label>
@@ -31,17 +35,20 @@
         <div class="form-group">
           <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
           <input type="tel" id="phone" name="phone" 
-                 placeholder="Optional" />
+               value="{{ user['phone'] or '' }}" placeholder="10-digit Indian mobile number" required
+               pattern="[6-9][0-9]{9}" inputmode="numeric" />
+             <small>Required: valid 10-digit Indian mobile number.</small>
         </div>
 
         <div class="form-group">
-          <label for="location"><i class="fas fa-map-marker-alt"></i> Location</label>
+          <label for="location"><i class="fas fa-map-marker-alt"></i> Location / Address</label>
           <input type="text" id="location" name="location" 
-                 placeholder="Optional" />
+            value="{{ user['location'] or '' }}" placeholder="Enter your location or full address" required />
+             <small>Example: MVP Colony, Visakhapatnam, Andhra Pradesh</small>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary btn-full">
+          <button type="submit" class="btn btn-primary btn-full" id="saveUserProfile">
             <i class="fas fa-save"></i> Save Changes
           </button>
           <a href="{{ url_for('profile') }}" class="btn btn-outline btn-full">
@@ -67,6 +74,12 @@
   margin-bottom: 24px;
   font-size: 1.8rem;
 }
+
+.form-intro { display:flex; align-items:center; gap:14px; padding-bottom:22px; margin-bottom:24px; border-bottom:1px solid var(--border); }
+.form-icon { width:46px; height:46px; display:grid; place-items:center; border-radius:14px; color:#fff; background:var(--primary); font-size:1.1rem; }
+.form-intro h2 { margin:0 0 4px; font-size:1.45rem; }
+.form-intro p { margin:0; color:var(--text-muted); }
+.form-intro .form-kicker { color:var(--primary); font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
 
 .lhn-form {
   display: flex;
@@ -170,4 +183,28 @@
   }
 }
 </style>
+<script>
+  document.getElementById('userProfileForm').addEventListener('submit', event => {
+    const phone = document.getElementById('phone');
+    const location = document.getElementById('location');
+    if (!phone.value.trim() || !/^[6-9]\d{9}$/.test(phone.value.trim().replace(/\D/g, ''))) {
+      event.preventDefault();
+      phone.setCustomValidity('Please enter a valid 10-digit Indian mobile number.');
+      phone.reportValidity();
+      return;
+    }
+    if (!location.value.trim()) {
+      event.preventDefault();
+      location.setCustomValidity('Location / Address is required.');
+      location.reportValidity();
+      return;
+    }
+    phone.setCustomValidity('');
+    location.setCustomValidity('');
+    const saveButton = document.getElementById('saveUserProfile');
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  });
+  document.querySelectorAll('#phone, #location').forEach(field => field.addEventListener('input', event => event.target.setCustomValidity('')));
+</script>
 {% endblock %}

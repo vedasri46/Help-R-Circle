@@ -1,67 +1,73 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Volunteer Profile — Help R Circle{% endblock %}
+{% block title %}Edit Helper Profile — Help R Circle{% endblock %}
 
 {% block content %}
 <section class="page-hero page-hero-teal">
   <div class="container">
-    <h1><i class="fas fa-edit"></i> Edit Volunteer Profile</h1>
-    <p>Update your volunteer information.</p>
+    <h1><i class="fas fa-edit"></i> Edit Helper Profile</h1>
+    <p>Update your helper information.</p>
   </div>
 </section>
 
 <section class="section">
   <div class="container" style="max-width: 640px;">
-    <div class="form-card">
-      <form method="POST" class="lhn-form">
+    <div class="form-card helper-edit-card">
+      <div class="form-intro">
+        <span class="form-icon"><i class="fas fa-user-pen"></i></span>
+        <div><p class="form-kicker">Keep your details current</p><h2>Helper Profile</h2><p>These details help requesters know how you can help.</p></div>
+      </div>
+      <form method="POST" class="lhn-form" id="helperProfileForm">
         
         <div class="form-group">
           <label for="name"><i class="fas fa-user"></i> Full Name</label>
           <input type="text" id="name" name="name" 
-                 value="{{ volunteer['name'] }}" required/>
+                 value="{{ helper['name'] }}" required/>
         </div>
 
         <div class="form-group">
           <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
           <input type="email" id="email" name="email" 
-                 value="{{ volunteer['email'] }}" required/>
+                 value="{{ helper['email'] }}" required/>
         </div>
 
         <div class="form-group">
           <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
           <input type="tel" id="phone" name="phone" 
-                 value="{{ volunteer['phone'] }}" required/>
+               value="{{ helper['phone'] }}" required pattern="[6-9][0-9]{9}" inputmode="numeric"/>
+             <small>Required: valid 10-digit Indian mobile number.</small>
         </div>
 
         <div class="form-group">
-          <label for="location"><i class="fas fa-map-marker-alt"></i> Location</label>
+          <label for="location"><i class="fas fa-map-marker-alt"></i> Location / Address</label>
           <input type="text" id="location" name="location" 
-                 value="{{ volunteer['location'] }}" required/>
+                 value="{{ helper['location'] }}" placeholder="Enter your location or full address" required/>
+             <small>Example: MVP Colony, Visakhapatnam, Andhra Pradesh</small>
         </div>
 
         <div class="form-group">
           <label for="skills"><i class="fas fa-star"></i> Skills</label>
           <textarea id="skills" name="skills" rows="3" required
-                    placeholder="List your skills and expertise...">{{ volunteer['skills'] }}</textarea>
+                    placeholder="List your skills and expertise...">{{ helper['skills'] }}</textarea>
           <small>What are you good at helping with?</small>
         </div>
 
         <div class="form-group">
           <label for="availability"><i class="fas fa-calendar"></i> Availability</label>
           <textarea id="availability" name="availability" rows="3" required
-                    placeholder="When are you available to help?">{{ volunteer['availability'] }}</textarea>
+                    placeholder="When are you available to help?">{{ helper['availability'] }}</textarea>
           <small>e.g., Weekends, Evenings, Flexible</small>
         </div>
 
         <div class="form-group">
           <label for="about"><i class="fas fa-file-alt"></i> About Me</label>
           <textarea id="about" name="about" rows="4"
-                    placeholder="Tell requesters a bit about yourself (optional)...">{{ volunteer['about'] or '' }}</textarea>
+                    placeholder="Tell requesters a bit about yourself (optional)...">{{ helper['about'] or '' }}</textarea>
           <small>Optional - helps build trust with those you help</small>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary btn-full">
+          <button type="submit" class="btn btn-primary btn-full" id="saveHelperProfile">
             <i class="fas fa-save"></i> Save Changes
           </button>
           <a href="{{ url_for('profile') }}" class="btn btn-outline btn-full">
@@ -87,6 +93,30 @@
   margin-bottom: 24px;
   font-size: 1.8rem;
 }
+
+.form-intro {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 22px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #fff;
+  background: var(--secondary);
+  font-size: 1.1rem;
+}
+
+.form-intro h2 { margin: 0 0 4px; font-size: 1.45rem; }
+.form-intro p { margin: 0; color: var(--text-muted); }
+.form-intro .form-kicker { color: var(--secondary); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
 
 .lhn-form {
   display: flex;
@@ -191,4 +221,20 @@
   }
 }
 </style>
+<script>
+  document.getElementById('helperProfileForm').addEventListener('submit', event => {
+    const phone = document.getElementById('phone');
+    if (!phone.value.trim() || !/^[6-9]\d{9}$/.test(phone.value.trim().replace(/\D/g, ''))) {
+      event.preventDefault();
+      phone.setCustomValidity('Enter a valid 10-digit Indian mobile number.');
+      phone.reportValidity();
+      return;
+    }
+    phone.setCustomValidity('');
+    const saveButton = document.getElementById('saveHelperProfile');
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  });
+  document.getElementById('phone').addEventListener('input', event => event.target.setCustomValidity(''));
+</script>
 {% endblock %}

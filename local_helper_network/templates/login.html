@@ -6,39 +6,31 @@
 <div class="auth-page">
   <div class="auth-split">
     <section class="auth-hero">
-      <span class="hero-badge"><i class="fas fa-hands-helping"></i> Help R Circle</span>
-      <h1>Welcome back, helper.</h1>
-      <p class="hero-copy">Sign in to your account and get directed to your personalized dashboard based on your role.</p>
+      <span class="hero-badge"><i class="fas fa-hands-helping"></i> Help <span class="brand-r">R</span> Circle</span>
+      <h1>{{ t('auth_login_title', 'Welcome back, helper.') }}</h1>
+      <p class="hero-copy">{{ t('auth_login_subtitle', 'Sign in to your account and get directed to your personalized dashboard based on your role.') }}</p>
 
       <div class="hero-features">
         <div class="feature-card">
           <i class="fas fa-zap"></i>
           <div>
-            <strong>Seamless access</strong>
-            <p>Automatically routed to your dashboard upon login.</p>
+            <strong>{{ t('auth_login_feature_1_title', 'Seamless access') }}</strong>
+            <p>{{ t('auth_login_feature_1_desc', 'Automatically routed to your dashboard upon login.') }}</p>
           </div>
         </div>
         <div class="feature-card">
           <i class="fas fa-shield-alt"></i>
           <div>
-            <strong>Secure & private</strong>
-            <p>Your account is protected by encrypted authentication.</p>
+            <strong>{{ t('auth_login_feature_2_title', 'Secure & private') }}</strong>
+            <p>{{ t('auth_login_feature_2_desc', 'Your account is protected by encrypted authentication.') }}</p>
           </div>
         </div>
         <div class="feature-card">
           <i class="fas fa-mobile-alt"></i>
           <div>
-            <strong>Works everywhere</strong>
-            <p>Responsive design for desktop, tablet, and mobile.</p>
+            <strong>{{ t('auth_login_feature_3_title', 'Works everywhere') }}</strong>
+            <p>{{ t('auth_login_feature_3_desc', 'Responsive design for desktop, tablet, and mobile.') }}</p>
           </div>
-        </div>
-      </div>
-
-      <div class="hero-note">
-        <strong>Try demo accounts:</strong>
-        <div class="demo-creds-inline">
-          <span><strong>User:</strong> user@example.com / password123</span>
-          <span><strong>Volunteer:</strong> volunteer@example.com / password123</span>
         </div>
       </div>
     </section>
@@ -46,15 +38,15 @@
     <section class="auth-panel auth-card">
       <header class="auth-card-header">
         <div>
-          <p class="eyebrow">Login</p>
-          <h2>Secure sign in</h2>
+          <p class="eyebrow">{{ t('nav_login', 'Login') }}</p>
+          <h2>{{ t('auth_login_heading', 'Secure sign in') }}</h2>
         </div>
         <span class="auth-pill"><i class="fas fa-user-shield"></i> Administrator portal available</span>
       </header>
 
       <form id="loginForm" method="POST" action="{{ url_for('login') }}" class="auth-form lhn-form" novalidate>
         <div class="form-field">
-          <label for="email" class="form-label">Email address</label>
+          <label for="email" class="form-label">{{ t('login_email_label', 'Email address') }}</label>
           <div class="input-with-icon">
             <i class="fas fa-envelope"></i>
             <input
@@ -72,7 +64,7 @@
         </div>
 
         <div class="form-field">
-          <label for="password" class="form-label">Password</label>
+          <label for="password" class="form-label">{{ t('login_password_label', 'Password') }}</label>
           <div class="input-with-icon password-row">
             <i class="fas fa-lock"></i>
             <input
@@ -93,23 +85,23 @@
         <div class="form-row auth-options">
           <label class="checkbox-label">
             <input type="checkbox" name="remember" value="1" />
-            Remember me
+            {{ t('login_remember_me', 'Remember me') }}
           </label>
-          <a href="#" class="text-link">Forgot password?</a>
+          <a href="#" class="text-link">{{ t('login_forgot_password', 'Forgot password?') }}</a>
         </div>
 
         <button type="submit" class="btn btn-primary btn-full auth-submit">
-          <span class="btn-text">Sign In</span>
+          <span class="btn-text">{{ t('auth_login_submit', 'Sign In') }}</span>
         </button>
 
         <p class="auth-footer">
-          New to Help R Circle?
-          <a href="{{ url_for('signup') }}" class="auth-link">Create an account</a>
+          {{ t('login_create_account_prompt', 'New to Help') }} <span class="brand-r">R</span> Circle?
+          <a href="{{ url_for('signup') }}" class="auth-link">{{ t('login_create_account_link', 'Create an account') }}</a>
         </p>
       </form>
 
       <div class="auth-note">
-        Authorized administrators should use the <a href="{{ url_for('admin_login') }}">admin portal</a>.
+        {{ t('login_admin_portal_prompt', 'Authorized administrators should use the') }} <a href="{{ url_for('admin_login') }}">{{ t('login_admin_portal_link', 'admin portal') }}</a>.
       </div>
     </section>
   </div>

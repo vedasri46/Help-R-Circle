@@ -2,103 +2,117 @@
 
 {% block title %}Request #{{ req['id'] }} — Help R Circle{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+
 {% block content %}
-<section class="page-hero page-hero-teal">
-  <div class="container">
-    <h1><i class="fas fa-file-lines"></i> Request Details</h1>
-    <p>View the full request information, volunteer assignment, and progress at a glance.</p>
+<section class="page-hero page-hero-dark">
+  <div class="container helper-detail-hero">
+    <div>
+      <p class="hero-pretitle"><i class="fas fa-clipboard-check"></i> Helper Dashboard</p>
+      <h1><i class="fas fa-file-lines"></i> Request Details</h1>
+      <p class="hero-copy">Review this request and continue the helper workflow from one place.</p>
+    </div>
+    <span class="status-badge status-{{ status_class }}">{{ status_label }}</span>
   </div>
 </section>
 
-<section class="section">
-  <div class="container" style="max-width: 860px;">
-    <div class="request-detail-shell">
-      <div class="request-detail-header">
+<section class="section dashboard-section helper-detail-section">
+  <div class="container">
+    <div class="helper-detail-shell">
+      <div class="request-card helper-detail-card">
+        <div class="request-card-header">
         <div>
-          <span class="request-id-label">Request #{{ req['id'] }}</span>
+          <span class="request-id"><i class="fas fa-hashtag"></i> Request #{{ req['id'] }}</span>
           <h2>{{ req['help_type'] }}</h2>
         </div>
-        <span class="status-badge status-{{ status_class }}">{{ status_label }}</span>
+          <span class="status-badge status-{{ status_class }}">{{ status_label }}</span>
+          <span class="priority-badge priority-badge-{{ req['priority'] or 'normal' }}">
+            {% if req['priority'] == 'emergency' %}🔴 Emergency{% elif req['priority'] == 'urgent' %}🟡 Urgent{% else %}🟢 Normal{% endif %}
+          </span>
       </div>
 
-      <div class="request-detail-grid">
-        <div class="detail-card">
+        <div class="request-body helper-detail-body">
+          <div class="request-icon-block"><i class="fas fa-hands-helping"></i></div>
           <h3>Description</h3>
-          <p>{{ req['description'] }}</p>
+          <p class="request-desc helper-detail-description">{{ req['description'] }}</p>
         </div>
-        <div class="detail-card">
-          <h3>Location</h3>
-          <p>{{ req['location'] }}</p>
-        </div>
-        <div class="detail-card">
-          <h3>Date submitted</h3>
-          <p>{{ req['created_at'] }}</p>
-        </div>
-        <div class="detail-card">
-          <h3>Last updated</h3>
-          <p>{{ req['updated_at'] }}</p>
-        </div>
-      </div>
 
-      {% if req['status'] in ('volunteer_assigned', 'volunteer_on_way', 'volunteer_near_location', 'volunteer_reached_location', 'completed') and volunteer_contact %}
-      <div class="volunteer-card">
-        <div class="volunteer-card-header">
-          <h2><i class="fas fa-user-check"></i> Assigned Volunteer</h2>
+        <div class="request-meta-grid helper-detail-meta-grid">
+          <div class="meta-block"><span class="meta-label">Requester</span><span>{{ req['name'] }}</span></div>
+          <div class="meta-block"><span class="meta-label">Contact</span><span>{{ req['phone'] }}</span></div>
+          <div class="meta-block"><span class="meta-label">Location</span><span>{{ req['location'] }}</span></div>
+          <div class="meta-block"><span class="meta-label">Date submitted</span><span>{{ req['created_at'] }}</span></div>
+          <div class="meta-block"><span class="meta-label">Priority</span><span class="priority-text priority-text-{{ req['priority'] or 'normal' }}">{% if req['priority'] == 'emergency' %}Emergency{% elif req['priority'] == 'urgent' %}Urgent{% else %}Normal{% endif %}</span></div>
+          <div class="meta-block"><span class="meta-label">Last updated</span><span>{{ req['updated_at'] }}</span></div>
+        </div>
+
+      {% if req['status'] in ('accepted', 'helper_assigned', 'helper_on_way', 'helper_near_location', 'helper_reached_location', 'completed') and helper_contact %}
+      <div class="request-assignment helper-detail-assignment">
+        <div class="helper-detail-assignment-header">
+          <h2><i class="fas fa-user-check"></i> Assigned Helper</h2>
           <span class="status-badge status-{{ req['status'] }}">{{ req['status']|capitalize }}</span>
         </div>
-        <div class="volunteer-card-body">
-          <div class="volunteer-info-grid">
-            <div class="volunteer-info-item">
-              <label>Name</label>
-              <p>{{ volunteer_contact['name'] }}</p>
-            </div>
-            <div class="volunteer-info-item">
-              <label>Phone</label>
-              <p><a href="tel:{{ volunteer_contact['phone'] }}">{{ volunteer_contact['phone'] }}</a></p>
-            </div>
-            <div class="volunteer-info-item">
-              <label>Email</label>
-              <p>{% if volunteer_contact['email'] %}<a href="mailto:{{ volunteer_contact['email'] }}">{{ volunteer_contact['email'] }}</a>{% else %}<span class="text-muted">Not provided</span>{% endif %}</p>
-            </div>
-            {% if volunteer_contact['availability'] %}
-            <div class="volunteer-info-item">
-              <label>Availability</label>
-              <p>{{ volunteer_contact['availability'] }}</p>
-            </div>
-            {% endif %}
-          </div>
+        <div class="helper-detail-contact">
+          <span><strong>Name:</strong> {{ helper_contact['name'] }}</span>
+          <span><strong>Phone:</strong> <a href="tel:{{ helper_contact['phone'] }}">{{ helper_contact['phone'] }}</a></span>
+          <span><strong>Email:</strong> {% if helper_contact['email'] %}<a href="mailto:{{ helper_contact['email'] }}">{{ helper_contact['email'] }}</a>{% else %}Not provided{% endif %}</span>
         </div>
       </div>
       {% elif req['status'] == 'pending' %}
-      <!-- Pending Status Message -->
-      <div class="volunteer-card volunteer-card-pending">
-        <div class="volunteer-card-body">
-          <p><i class="fas fa-hourglass-half"></i> Waiting for a volunteer to accept this request. Volunteer information will appear here once someone accepts.</p>
-        </div>
+      <div class="request-assignment helper-detail-assignment">
+        <p class="assignment-note"><i class="fas fa-hourglass-half"></i> Waiting for a helper to accept this request.</p>
       </div>
       {% endif %}
+
+      <section class="helper-tracking-card" aria-labelledby="helperTrackingTitle">
+        <div class="helper-tracking-header">
+          <div>
+            <span class="eyebrow">Live request view</span>
+            <h2 id="helperTrackingTitle"><i class="fas fa-map-location-dot"></i> Tracking</h2>
+            <p>{% if req['volunteer_id'] %}Requester and shared helper locations appear here when available.{% else %}Requester location for this help request.{% endif %}</p>
+          </div>
+          <span class="status-badge status-{{ status_class }}" id="trackingStatus">{{ status_label }}</span>
+        </div>
+        <div id="detailsTrackingMap" class="details-tracking-map{% if helper_can_view_requester_location %} helper-requester-location-map{% endif %}" aria-label="Request tracking map"></div>
+        <div class="helper-tracking-footer">
+          <span id="detailsTrackingMessage">{% if req['volunteer_id'] %}Loading location information...{% else %}Requester location shown. Accept the request to start live helper tracking.{% endif %}</span>
+          <span id="detailsTrackingEta">{% if req['volunteer_id'] %}ETA unavailable{% endif %}</span>
+        </div>
+      </section>
 
       {% if can_update_progress %}
-      <div class="detail-actions" style="margin-top: 24px;">
-        <form method="POST" action="{{ url_for('start_journey', req_id=req['id']) }}" style="display:inline">
-          <input type="hidden" name="volunteer_latitude" id="volunteer_latitude" value="">
-          <input type="hidden" name="volunteer_longitude" id="volunteer_longitude" value="">
-          <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-route"></i> Start Journey</button>
+      <div class="request-card-actions helper-detail-actions">
+        {% if req['status'] in ['accepted', 'helper_assigned'] %}
+        <button type="button" class="btn btn-outline" id="shareLocationBtn"><i class="fas fa-location-dot"></i> Share My Location</button>
+        <span id="locationShareStatus" class="tracking-message" role="status"></span>
+        <form method="POST" action="{{ url_for('start_journey', req_id=req['id']) }}" id="startJourneyForm" style="display:inline">
+          <input type="hidden" name="helper_latitude" id="helper_latitude" value="">
+          <input type="hidden" name="helper_longitude" id="helper_longitude" value="">
+          <button type="submit" class="btn btn-primary" id="startJourneyBtn">
+            <i class="fas fa-route"></i> Start Journey
+          </button>
         </form>
-        <form method="POST" action="{{ url_for('refresh_location', req_id=req['id']) }}" style="display:inline">
-          <input type="hidden" name="volunteer_latitude" id="volunteer_latitude_refresh" value="">
-          <input type="hidden" name="volunteer_longitude" id="volunteer_longitude_refresh" value="">
-          <button type="submit" class="btn btn-outline btn-lg"><i class="fas fa-location-crosshairs"></i> Refresh Location</button>
-        </form>
+        {% elif req['status'] in ['helper_on_way', 'helper_near_location'] %}
         <form method="POST" action="{{ url_for('mark_reached', req_id=req['id']) }}" style="display:inline">
-          <button type="submit" class="btn btn-outline btn-lg"><i class="fas fa-map-marker-alt"></i> Mark Reached</button>
+          <button type="submit" class="btn btn-outline"><i class="fas fa-map-marker-alt"></i> Mark Reached</button>
         </form>
+        {% elif req['status'] == 'helper_reached_location' %}
+        <a href="{{ url_for('dashboard', status='helper_reached_location') }}" class="btn btn-success">
+          <i class="fas fa-flag-checkered"></i> Complete Task
+        </a>
+        {% elif req['status'] == 'completed' %}
+        <span class="req-final-status"><i class="fas fa-circle-check"></i> Task Completed</span>
+        {% endif %}
       </div>
       {% endif %}
 
-      <div class="detail-actions">
-        <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline btn-lg"><i class="fas fa-arrow-left"></i> Back to My Requests</a>
-        <a href="{{ url_for('track_request', request_id=req['id']) }}" class="btn btn-primary btn-lg"><i class="fas fa-location-arrow"></i> Track this request</a>
+      <div class="request-card-actions helper-detail-actions">
+        <a href="{{ url_for('dashboard') if session.get('role') == 'helper' else url_for('user_dashboard') }}" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        {% if not can_update_progress %}
+        <a href="{{ url_for('track_request', request_id=req['id']) }}" class="btn btn-primary"><i class="fas fa-location-arrow"></i> Track this request</a>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -106,16 +120,265 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(position) {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      const fields = document.querySelectorAll('input[id^="volunteer_latitude"]');
-      const fieldsLng = document.querySelectorAll('input[id^="volunteer_longitude"]');
-      fields.forEach((field) => field.value = lat);
-      fieldsLng.forEach((field) => field.value = lng);
-    }, function() {});
+  const canTrack = {{ 'true' if can_update_progress and req['status'] in ['helper_on_way', 'helper_near_location'] else 'false' }};
+  const requestId = {{ req['id'] }};
+  const shareButton = document.getElementById('shareLocationBtn');
+  const shareStatus = document.getElementById('locationShareStatus');
+  const startJourneyForm = document.getElementById('startJourneyForm');
+  const startJourneyButton = document.getElementById('startJourneyBtn');
+  const trackingMapElement = document.getElementById('detailsTrackingMap');
+  const trackingMessage = document.getElementById('detailsTrackingMessage');
+  const trackingEta = document.getElementById('detailsTrackingEta');
+  const trackingStatus = document.getElementById('trackingStatus');
+  const helperLocationAssigned = {{ 'true' if req['volunteer_id'] else 'false' }};
+  const assignedHelperId = {{ req['volunteer_id'] if req['volunteer_id'] else 'null' }};
+  const requestLatitude = {{ req['request_latitude']|tojson }};
+  const requestLongitude = {{ req['request_longitude']|tojson }};
+  const helperHasSharedLocation = {{ 'true' if req['status'] in ['helper_on_way', 'helper_near_location', 'helper_reached_location', 'arrived'] else 'false' }};
+  const initialHelperLatitude = {{ req['helper_latitude']|tojson if req['status'] in ['helper_on_way', 'helper_near_location', 'helper_reached_location', 'arrived'] else 'null' }};
+  const initialHelperLongitude = {{ req['helper_longitude']|tojson if req['status'] in ['helper_on_way', 'helper_near_location', 'helper_reached_location', 'arrived'] else 'null' }};
+  let watchId = null;
+  let lastSentAt = 0;
+  let lastSentPoint = null;
+  let journeySubmitting = false;
+  let detailsMap = null;
+  let requesterMarker = null;
+  let helperMarker = null;
+  let routeLine = null;
+  let trackingPollId = null;
+
+  function validCoordinatePair(latitude, longitude) {
+    return Number.isFinite(Number(latitude)) && Number.isFinite(Number(longitude))
+      && Number(latitude) >= -90 && Number(latitude) <= 90
+      && Number(longitude) >= -180 && Number(longitude) <= 180;
   }
+
+  function updateTrackingMessage(message) {
+    if (trackingMessage) trackingMessage.textContent = message;
+  }
+
+  function updateTrackingStatus(status) {
+    const labels = {
+      submitted: 'Request Submitted', pending: 'Request Submitted', accepted: 'Request Accepted',
+      helper_assigned: 'Request Accepted', helper_on_way: 'Helper Started Journey',
+      helper_near_location: 'Helper Near Location', helper_reached_location: 'Helper Arrived',
+      arrived: 'Helper Arrived', completed: 'Task Completed', cancelled: 'Request Cancelled'
+    };
+    if (trackingStatus) trackingStatus.textContent = labels[status] || status || 'Request Status';
+  }
+
+  function fitDetailsMap() {
+    const points = [];
+    if (requesterMarker) points.push(requesterMarker.getLatLng());
+    if (helperMarker) points.push(helperMarker.getLatLng());
+    if (points.length > 1) detailsMap.fitBounds(L.latLngBounds(points).pad(0.2));
+    else if (points.length === 1) detailsMap.setView(points[0], 14);
+  }
+
+  function drawHelperLocation(latitude, longitude, routeCoordinates) {
+    console.debug('[Help R Circle] Helper marker display', {
+      helperId: assignedHelperId,
+      requestId,
+      latitude: Number(latitude),
+      longitude: Number(longitude)
+    });
+    const point = [Number(latitude), Number(longitude)];
+    if (!helperMarker) {
+      helperMarker = L.marker(point, {
+        icon: L.divIcon({
+          html: '<div class="tracking-helper-marker"><i class="fas fa-user"></i></div>',
+          className: 'tracking-helper-icon', iconSize: [34, 34], iconAnchor: [17, 17]
+        })
+      }).addTo(detailsMap).bindPopup('Shared helper location');
+    } else {
+      helperMarker.setLatLng(point);
+    }
+    if (routeLine) detailsMap.removeLayer(routeLine);
+    if (Array.isArray(routeCoordinates) && routeCoordinates.length > 1) {
+      routeLine = L.polyline(routeCoordinates, { color: '#2563EB', weight: 4, opacity: 0.8 }).addTo(detailsMap);
+    } else if (requesterMarker) {
+      routeLine = L.polyline([point, requesterMarker.getLatLng()], { color: '#2563EB', weight: 4, opacity: 0.65, dashArray: '8 8' }).addTo(detailsMap);
+    }
+    fitDetailsMap();
+  }
+
+  function loadDetailsTracking() {
+    fetch('/api/request/' + requestId + '/helper-location', { headers: { 'Accept': 'application/json' } })
+      .then(response => response.json().then(data => ({ response, data })))
+      .then(({ response, data }) => {
+        if (!response.ok) throw new Error(data.error || 'Location information unavailable');
+        updateTrackingStatus(data.status || '{{ req['status'] }}');
+        if (data.ok && data.available && data.assigned_helper_id && validCoordinatePair(data.latitude, data.longitude)) {
+          drawHelperLocation(data.latitude, data.longitude, data.route_coordinates);
+          updateTrackingMessage('Helper location shared · Updated ' + (data.updated_at || 'just now'));
+          if (trackingEta) trackingEta.textContent = data.route_available && data.eta_minutes != null
+            ? (data.eta_minutes === 0 ? 'Arriving now' : 'ETA: ~' + data.eta_minutes + ' min')
+            : 'ETA unavailable';
+        } else if (requesterMarker) {
+          updateTrackingMessage(helperLocationAssigned
+            ? (data.message || 'Waiting for helper location...')
+            : 'Requester location shown. Accept the request to start live helper tracking.');
+        } else {
+          updateTrackingMessage('Location not available for this request.');
+        }
+      })
+      .catch(error => updateTrackingMessage(error.message || 'Location information unavailable.'));
+  }
+
+  function initializeDetailsMap() {
+    if (!trackingMapElement) return;
+    if (typeof L === 'undefined') {
+      updateTrackingMessage('Map library unavailable. Please refresh and try again.');
+      return;
+    }
+    detailsMap = L.map(trackingMapElement, { zoomControl: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(detailsMap);
+    if (validCoordinatePair(requestLatitude, requestLongitude)) {
+      requesterMarker = L.circleMarker([Number(requestLatitude), Number(requestLongitude)], {
+        radius: 10, color: '#0F766E', fillColor: '#14B8A6', fillOpacity: 0.95, weight: 3
+      }).addTo(detailsMap).bindPopup('Requester location');
+      fitDetailsMap();
+    }
+    if (helperLocationAssigned && helperHasSharedLocation
+        && validCoordinatePair(initialHelperLatitude, initialHelperLongitude)) {
+      drawHelperLocation(initialHelperLatitude, initialHelperLongitude, null);
+    }
+    if (!requesterMarker && !helperMarker) updateTrackingMessage('Location not available for this request.');
+    if (helperLocationAssigned) {
+      loadDetailsTracking();
+      trackingPollId = window.setInterval(loadDetailsTracking, 5000);
+    } else if (requesterMarker) {
+      updateTrackingMessage('Requester location available. Accept this request to begin live helper tracking.');
+      if (trackingEta) trackingEta.textContent = '';
+    } else {
+      updateTrackingMessage('Requester location is unavailable.');
+    }
+    window.requestAnimationFrame(() => detailsMap.invalidateSize());
+  }
+
+  initializeDetailsMap();
+
+  function stopLocationSharing() {
+    if (watchId !== null && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+  }
+
+  function sendHelperLocation(position) {
+    const now = Date.now();
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    const accuracy = Number(position.coords.accuracy);
+    if (!validCoordinatePair(latitude, longitude)) {
+      if (shareStatus) shareStatus.textContent = 'Unable to get your current location. Please enable location permission.';
+      return;
+    }
+    if (Number.isFinite(accuracy) && accuracy > 100000) {
+      if (shareStatus) shareStatus.textContent = 'Unable to get your current location. Please enable location permission.';
+      return;
+    }
+    document.querySelectorAll('input[id^="helper_latitude"]').forEach(field => field.value = latitude);
+    document.querySelectorAll('input[id^="helper_longitude"]').forEach(field => field.value = longitude);
+    if (now - lastSentAt < 3000 && lastSentPoint &&
+        Math.abs(lastSentPoint.latitude - latitude) < 0.00001 &&
+        Math.abs(lastSentPoint.longitude - longitude) < 0.00001) return;
+    const payload = new FormData();
+    payload.append('request_id', requestId);
+    payload.append('latitude', latitude);
+    payload.append('longitude', longitude);
+    payload.append('accuracy', Number.isFinite(accuracy) ? accuracy : '');
+    console.debug('[Help R Circle] Helper GPS send', {
+      helperId: assignedHelperId,
+      requestId,
+      latitude,
+      longitude
+    });
+    fetch('/api/helper/location', { method: 'POST', body: payload, headers: { 'Accept': 'application/json' } })
+      .then(response => response.json().then(data => ({ response, data })))
+      .then(({ response, data }) => {
+        if (!response.ok) throw new Error(data.error || 'Location update failed');
+        lastSentAt = now;
+        lastSentPoint = { latitude, longitude };
+        if (shareStatus) shareStatus.textContent = '🟢 GPS Tracking Active · 📍 Location detected · Last updated: just now';
+        if (['helper_reached_location', 'arrived', 'completed'].includes(data.status)) stopLocationSharing();
+      })
+      .catch(error => {
+        console.warn('Helper location update:', error.message);
+        if (error.message === 'Location tracking is no longer active') stopLocationSharing();
+      });
+  }
+
+  function startLocationSharing() {
+    if (!navigator.geolocation) {
+      if (shareStatus) shareStatus.textContent = 'Unable to detect your location. Please enable device location/GPS and try again.';
+      return;
+    }
+    if (shareButton) {
+      shareButton.disabled = true;
+      shareButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Requesting location...';
+    }
+    if (shareStatus) shareStatus.textContent = 'Requesting location permission...';
+    if (watchId !== null) return;
+    watchId = navigator.geolocation.watchPosition(position => {
+      sendHelperLocation(position);
+      if (shareButton) shareButton.innerHTML = '<i class="fas fa-check"></i> Location Sharing Active';
+      if (shareStatus) shareStatus.textContent = '🟢 Location detected successfully';
+    }, error => {
+      if (shareButton) { shareButton.disabled = false; shareButton.innerHTML = '<i class="fas fa-location-dot"></i> Share My Location'; }
+      if (shareStatus) shareStatus.textContent = 'Unable to get your current location. Please enable location permission.';
+    }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+  }
+
+  function startJourney(event) {
+    if (journeySubmitting) {
+      event.preventDefault();
+      return;
+    }
+    journeySubmitting = true;
+    if (startJourneyButton) {
+      startJourneyButton.disabled = true;
+      startJourneyButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting Journey...';
+    }
+    if (!navigator.geolocation) {
+      if (shareStatus) shareStatus.textContent = 'GPS unavailable. Starting the journey without a shared location.';
+      event.preventDefault();
+      startJourneyForm.submit();
+      return;
+    }
+    event.preventDefault();
+    if (shareStatus) shareStatus.textContent = 'Requesting GPS location to start journey...';
+    navigator.geolocation.getCurrentPosition(position => {
+      sendHelperLocation(position);
+      document.getElementById('helper_latitude').value = position.coords.latitude;
+      document.getElementById('helper_longitude').value = position.coords.longitude;
+      startLocationSharing();
+      startJourneyForm.submit();
+    }, error => {
+      if (shareStatus) shareStatus.textContent = error.code === 1
+        ? 'Location permission is required to share your current location with the requester.'
+        : 'Unable to get your current location. Please enable location permission.';
+      startJourneyForm.submit();
+    }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+  }
+
+  if (shareButton) shareButton.addEventListener('click', startLocationSharing);
+  if (startJourneyForm) startJourneyForm.addEventListener('submit', startJourney);
+
+  if (canTrack && navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(sendHelperLocation, error => {
+      console.warn('Initial helper geolocation unavailable:', error.message);
+    }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+    startLocationSharing();
+  }
+
+  window.addEventListener('beforeunload', () => {
+    stopLocationSharing();
+    if (trackingPollId !== null) window.clearInterval(trackingPollId);
+  });
 </script>
 {% endblock %}

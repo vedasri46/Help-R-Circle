@@ -1,13 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Volunteer Dashboard — Help R Circle{% endblock %}
+{% block title %}Helper Dashboard — Help R Circle{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
 
 {% block content %}
 <section class="page-hero page-hero-dark">
-  <div class="container volunteer-hero-grid">
+  <div class="container helper-hero-grid">
     <div class="hero-copy-panel">
-      <p class="hero-pretitle">Welcome back, {{ session.get('username') or 'Volunteer' }} 👋</p>
-      <h1>Thank you for supporting your community and helping people in need.</h1>
-      <p class="hero-copy">Your contributions keep Help R Circle strong. Continue to accept tasks, support neighbors, and make an impact every day.</p>
+      <p class="hero-pretitle">{{ t('dashboard_welcome_title', 'Welcome back') }}, {{ session.get('username') or 'Helper' }} 👋</p>
+      <h1>{{ t('dashboard_welcome_subtitle', 'Thank you for supporting your community and helping people in need.') }}</h1>
+      <p class="hero-copy">{{ t('dashboard_overview_subtitle', 'Track your current tasks, recent activity, and request progress from one place.') }}</p>
     </div>
 
     <div class="hero-card">
@@ -53,26 +57,39 @@
       <article class="summary-card">
         <div class="summary-icon">🤝</div>
         <span class="summary-value">{{ stats.accepted }}</span>
-        <span class="summary-label">Accepted Tasks</span>
+        <span class="summary-label">{{ t('dashboard_accepted_tasks', 'Accepted Tasks') }}</span>
       </article>
       <article class="summary-card">
         <div class="summary-icon">✅</div>
         <span class="summary-value">{{ stats.completed }}</span>
-        <span class="summary-label">Completed Tasks</span>
+        <span class="summary-label">{{ t('dashboard_completed_tasks', 'Completed Tasks') }}</span>
       </article>
       <article class="summary-card">
         <div class="summary-icon">⭐</div>
         <span class="summary-value">{{ stats.accepted + stats.completed }}</span>
-        <span class="summary-label">Community Impact</span>
+        <span class="summary-label">{{ t('dashboard_community_impact', 'Community Impact') }}</span>
       </article>
     </div>
 
     <div class="dashboard-actions">
-      <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg"><i class="fas fa-list"></i> View Requests</a>
-      <a href="{{ url_for('dashboard', status='accepted') }}" class="btn btn-secondary btn-lg"><i class="fas fa-tasks"></i> My Tasks</a>
-      <a href="{{ url_for('completed_requests') }}" class="btn btn-success btn-lg"><i class="fas fa-check-circle"></i> Completed Requests</a>
-      <a href="{{ url_for('request_help') }}" class="btn btn-outline btn-lg"><i class="fas fa-hand-holding-heart"></i> Request Help</a>
-      <a href="{{ url_for('user_dashboard') }}" class="btn btn-ghost btn-lg"><i class="fas fa-folder-open"></i> My Requests</a>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg"><i class="fas fa-list"></i> {{ t('dashboard_view_requests', 'View Requests') }}</a>
+      <a href="{{ url_for('dashboard', status='accepted') }}" class="btn btn-secondary btn-lg"><i class="fas fa-tasks"></i> {{ t('dashboard_my_tasks', 'My Tasks') }}</a>
+      <a href="{{ url_for('completed_requests') }}" class="btn btn-success btn-lg"><i class="fas fa-check-circle"></i> {{ t('dashboard_completed_requests', 'Completed Requests') }}</a>
+      <a href="{{ url_for('request_help') }}" class="btn btn-outline btn-lg"><i class="fas fa-hand-holding-heart"></i> {{ t('dashboard_request_help', 'Request Help') }}</a>
+      <a href="{{ url_for('user_dashboard') }}" class="btn btn-ghost btn-lg"><i class="fas fa-folder-open"></i> {{ t('dashboard_my_requests', 'My Requests') }}</a>
+    </div>
+
+    <div class="dashboard-map-card">
+      <div class="dashboard-map-header">
+        <div>
+          <span class="eyebrow">Request locations</span>
+          <h2><i class="fas fa-map-marked-alt"></i> Help requests near you</h2>
+          <p>Requests with a shared map location appear here.</p>
+        </div>
+        <span class="dashboard-map-count" id="dashboardMapCount">0 locations</span>
+      </div>
+      <div id="dashboardMap" class="dashboard-map" aria-label="Help request locations map"></div>
+      <p id="dashboardMapMessage" class="dashboard-map-message">Loading request locations...</p>
     </div>
   </div>
 </section>
@@ -91,7 +108,7 @@
         <div class="filter-selects">
           <select name="status">
             <option value="all"      {% if status_filter=='all' %}selected{% endif %}>All Statuses</option>
-            <option value="pending"  {% if status_filter=='pending' %}selected{% endif %}>Pending</option>
+            <option value="pending"  {% if status_filter=='pending' %}selected{% endif %}>Submitted</option>
             <option value="accepted" {% if status_filter=='accepted' %}selected{% endif %}>Accepted</option>
             <option value="completed"{% if status_filter=='completed' %}selected{% endif %}>Completed</option>
             <option value="cancelled"{% if status_filter=='cancelled' %}selected{% endif %}>Cancelled</option>
@@ -104,23 +121,30 @@
             <option value="Travel Assistance" {% if type_filter=='Travel Assistance' %}selected{% endif %}>Travel Assistance</option>
             <option value="Other"             {% if type_filter=='Other' %}selected{% endif %}>Other</option>
           </select>
+          <select name="priority">
+            <option value="all" {% if priority_filter == 'all' %}selected{% endif %}>All priorities</option>
+            <option value="emergency" {% if priority_filter == 'emergency' %}selected{% endif %}>🔴 Emergency</option>
+            <option value="urgent" {% if priority_filter == 'urgent' %}selected{% endif %}>🟡 Urgent</option>
+            <option value="normal" {% if priority_filter == 'normal' %}selected{% endif %}>🟢 Normal</option>
+          </select>
         </div>
-        <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-ghost"><i class="fas fa-undo"></i> Reset</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> {{ t('dashboard_filter', 'Filter') }}</button>
+        
+        <a href="{{ url_for('dashboard') }}" class="btn btn-ghost"><i class="fas fa-undo"></i> {{ t('dashboard_reset', 'Reset') }}</a>
       </form>
     </div>
 
     <!-- ── Request Cards ──────────────────────────────────────────────── -->
     <div class="requests-header">
-      <h2>Help Requests
-        <span class="req-count">{{ requests|length }} found</span>
+      <h2>{{ t('dashboard_help_requests', 'Help Requests') }}
+        <span class="req-count">{{ requests|length }} {{ t('dashboard_found_count', 'found') }}</span>
       </h2>
     </div>
 
     {% if requests %}
     <div class="requests-grid">
       {% for req in requests %}
-      <div class="request-card status-{{ req['status'] }} {% if req['urgency'] == 'urgent' %}urgency-urgent{% endif %}">
+      <div class="request-card status-{{ req['status'] }} priority-{{ req['priority'] or 'normal' }}">
 
         <!-- Card Header -->
         <div class="req-card-header">
@@ -133,12 +157,12 @@
             {{ req['help_type'] }}
           </div>
           <div class="req-badges">
-            {% if req['urgency'] == 'urgent' %}
-            <span class="badge badge-urgent">🔴 Urgent</span>
-            {% endif %}
+            <span class="priority-badge priority-badge-{{ req['priority'] or 'normal' }}">
+              {% if req['priority'] == 'emergency' %}🔴 Emergency{% elif req['priority'] == 'urgent' %}🟡 Urgent{% else %}🟢 Normal{% endif %}
+            </span>
             <span class="badge badge-{{ req['status'] }}">
-              {% if req['status'] == 'pending' %}⏳ Pending
-              {% elif req['status'] in ['volunteer_assigned','volunteer_on_way','volunteer_near_location','volunteer_reached_location','accepted'] %}🛟 In Progress
+              {% if req['status'] in ['pending', 'submitted'] %}⏳ Pending
+              {% elif req['status'] in ['helper_assigned','helper_on_way','helper_near_location','helper_reached_location','accepted'] %}🛟 In Progress
               {% elif req['status'] == 'completed' %}🎉 Completed
               {% else %}❌ Cancelled{% endif %}
             </span>
@@ -154,9 +178,10 @@
             <span><i class="fas fa-phone"></i> {{ req['phone'] }}</span>
           </div>
           <p class="req-desc">{{ req['description'][:120] }}{% if req['description']|length > 120 %}…{% endif %}</p>
-          {% if req['volunteer_name'] %}
-          <div class="req-volunteer">
-            <i class="fas fa-user-check"></i> Accepted by <strong>{{ req['volunteer_name'] }}</strong>
+          {% if req['helper_name'] %}
+          <div class="req-helper">
+            <i class="fas fa-user-check"></i>
+              Accepted by <strong>{{ req['helper_name'] }}</strong>
           </div>
           {% endif %}
           <div class="req-time">
@@ -166,26 +191,45 @@
 
         <!-- Card Actions -->
         <div class="req-card-actions">
-          {% if req['status'] == 'pending' %}
+          {% if req['status'] in ['pending', 'submitted'] %}
           <button class="btn btn-sm btn-primary accept-btn"
                   onclick="openAcceptModal({{ req['id'] }}, '{{ req['name'] }}')">
             <i class="fas fa-hand-paper"></i> Accept
           </button>
+          <a class="btn btn-sm btn-secondary" href="{{ url_for('request_details', req_id=req['id']) }}">
+            <i class="fas fa-location-dot"></i> View Request Location
+          </a>
           <form method="POST" action="{{ url_for('cancel_request', req_id=req['id']) }}" style="display:inline">
             <button type="submit" class="btn btn-sm btn-ghost"
-                    onclick="return confirm('Cancel this request?')">
+
+                    onclick="return confirm('{{ t('confirm_cancel_request', 'Cancel this request?') }}')"
               <i class="fas fa-times"></i> Cancel
             </button>
           </form>
-          {% elif req['status'] in ['volunteer_reached_location','completed'] %}
-          <form method="POST" action="{{ url_for('complete_request', req_id=req['id']) }}" style="display:inline">
-            <button type="submit" class="btn btn-sm btn-success">
-              <i class="fas fa-flag-checkered"></i> Mark Complete
-            </button>
-          </form>
+          {% elif req['status'] in ['accepted', 'helper_assigned', 'helper_on_way', 'helper_near_location'] %}
+          <a class="btn btn-sm btn-secondary" href="{{ url_for('request_details', req_id=req['id']) }}">
+            <i class="fas fa-eye"></i> View Details
+          </a>
+          <a class="btn btn-sm btn-primary" href="{{ url_for('request_details', req_id=req['id']) }}">
+            <i class="fas fa-location-dot"></i> Share My Location
+          </a>
+          {% elif req['status'] in ['helper_reached_location', 'arrived'] %}
+          <a class="btn btn-sm btn-secondary" href="{{ url_for('request_details', req_id=req['id']) }}">
+            <i class="fas fa-eye"></i> View Details
+          </a>
+          <button type="button" class="btn btn-sm btn-success complete-task-btn"
+                  data-request-id="{{ req['id'] }}"
+                  data-requester="{{ req['name']|e }}"
+                  data-help-type="{{ req['help_type']|e }}"
+                  data-location="{{ req['location']|e }}"
+                  data-description="{{ req['description']|e }}">
+            <i class="fas fa-flag-checkered"></i> Complete Task
+          </button>
+          {% elif req['status'] == 'completed' %}
+          <span class="req-final-status">✓ Task Completed</span>
           {% else %}
           <span class="req-final-status">
-            {% if req['status'] == 'completed' %}🎉 Task done!{% else %}Closed{% endif %}
+            {% if req['status'] == 'completed' %}🎉 {{ t('dashboard_task_done', 'Task done!') }}{% else %}{{ t('dashboard_closed', 'Closed') }}{% endif %}
           </span>
           {% endif %}
         </div>
@@ -197,9 +241,9 @@
     {% else %}
     <div class="empty-state">
       <i class="fas fa-search"></i>
-      <h3>No requests found</h3>
-      <p>Try changing your filters or check back later.</p>
-      <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Clear Filters</a>
+      <h3>{{ t('dashboard_no_requests_found', 'No requests found') }}</h3>
+      <p>{{ t('dashboard_try_filters', 'Try changing your filters or check back later.') }}</p>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary">{{ t('dashboard_clear_filters', 'Clear Filters') }}</a>
     </div>
     {% endif %}
 
@@ -208,11 +252,11 @@
     <div class="my-requests-section">
       <div class="my-requests-header">
         <div>
-          <h2><i class="fas fa-heart"></i> My Help Requests</h2>
-          <p>Requests you've submitted as a volunteer needing help</p>
+          <h2><i class="fas fa-heart"></i> {{ t('dashboard_my_help_requests', 'My Help Requests') }}</h2>
+          <p>{{ t('dashboard_requests_submitted_as_helper', "Requests you've submitted as a helper needing help") }}</p>
         </div>
         <a href="{{ url_for('request_help') }}" class="btn btn-primary">
-          <i class="fas fa-plus"></i> Request Help
+          <i class="fas fa-plus"></i> {{ t('dashboard_request_help', 'Request Help') }}
         </a>
       </div>
 
@@ -245,8 +289,8 @@
               <span class="help-type">{{ req['help_type'] }}</span>
             </div>
             <span class="status-badge status-{{ req['status'] }}">
-              {% if req['status'] == 'pending' %}⏳ Pending
-              {% elif req['status'] in ['volunteer_assigned','volunteer_on_way','volunteer_near_location','volunteer_reached_location','accepted'] %}🛟 In Progress
+              {% if req['status'] in ['pending', 'submitted'] %}⏳ Pending
+              {% elif req['status'] in ['helper_assigned','helper_on_way','helper_near_location','helper_reached_location','accepted'] %}🛟 In Progress
               {% elif req['status'] == 'completed' %}🎉 Completed
               {% else %}❌ Cancelled{% endif %}
             </span>
@@ -258,9 +302,10 @@
               <span><i class="fas fa-map-marker-alt"></i> {{ req['location'] }}</span>
               <span><i class="fas fa-phone"></i> {{ req['phone'] }}</span>
             </div>
-            {% if req['volunteer_name'] %}
-            <div class="volunteer-assigned">
-              <i class="fas fa-user-check"></i> Assigned to: <strong>{{ req['volunteer_name'] }}</strong>
+            {% if req['helper_name'] %}
+            <div class="helper-assigned">
+              <i class="fas fa-user-check"></i>
+              Assigned to: <strong>{{ req['helper_name'] }}</strong>
             </div>
             {% endif %}
             <div class="card-date">
@@ -272,9 +317,9 @@
             <a href="{{ url_for('request_details', req_id=req['id']) }}" class="btn btn-sm btn-secondary">
               <i class="fas fa-eye"></i> View Details
             </a>
-            {% if req['status'] == 'pending' %}
+            {% if req['status'] in ['pending', 'submitted'] %}
             <form method="POST" action="{{ url_for('user_cancel_request', req_id=req['id']) }}" style="display:inline">
-              <button type="submit" class="btn btn-sm btn-ghost" onclick="return confirm('Cancel this request?')">
+              <button type="submit" class="btn btn-sm btn-ghost" onclick="return confirm('{{ t('confirm_cancel_request', 'Cancel this request?') }}')">
                 <i class="fas fa-times"></i> Cancel
               </button>
             </form>
@@ -288,7 +333,7 @@
         <p><i class="fas fa-inbox"></i></p>
         <p>You haven't submitted any help requests yet.</p>
         <a href="{{ url_for('request_help') }}" class="btn btn-primary">
-          <i class="fas fa-plus"></i> Submit Your First Request
+          <i class="fas fa-plus"></i> {{ t('dashboard_submit_first_request', 'Submit Your First Request') }}
         </a>
       </div>
       {% endif %}
@@ -298,8 +343,8 @@
     <section class="dashboard-overview-section">
       <div class="overview-header">
         <div>
-          <h2><i class="fas fa-tachometer-alt"></i> Volunteer Overview</h2>
-          <p>Track your current tasks, recent activity, and request progress from one place.</p>
+          <h2><i class="fas fa-tachometer-alt"></i> {{ t('dashboard_helper_overview', 'Helper Overview') }}</h2>
+          <p>{{ t('dashboard_overview_subtitle', 'Track your current tasks, recent activity, and request progress from one place.') }}</p>
         </div>
       </div>
 
@@ -368,6 +413,38 @@
         <div class="modal-actions">
           <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Confirm & Accept</button>
           <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COMPLETE TASK VERIFICATION MODAL ════════════════════════════════════ -->
+<div class="modal-overlay" id="completeTaskModal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="completeTaskTitle">
+    <div class="modal-header">
+      <h3 id="completeTaskTitle"><i class="fas fa-shield-check"></i> Verify Task Completion</h3>
+      <button type="button" class="modal-close" id="closeCompleteTaskModal"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>A verification code has been sent to the user.</p>
+      <div class="detail-card">
+        <p><strong>Requester:</strong> <span id="completeTaskRequester"></span></p>
+        <p><strong>Help Type:</strong> <span id="completeTaskHelpType"></span></p>
+        <p><strong>Location:</strong> <span id="completeTaskLocation"></span></p>
+        <p><strong>Request:</strong> <span id="completeTaskDescription"></span></p>
+      </div>
+      <div class="form-group">
+        <label for="completionVerificationCode">Enter Verification Code</label>
+        <input type="text" id="completionVerificationCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required>
+        <p id="completionVerificationError" class="field-error" role="alert"></p>
+      </div>
+      <form method="POST" id="completeTaskForm">
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelCompleteTask">Cancel</button>
+          <button type="submit" class="btn btn-success" id="confirmCompleteTask">
+            <i class="fas fa-check"></i> Verify &amp; Complete Task
+          </button>
         </div>
       </form>
     </div>
@@ -495,8 +572,8 @@
     border: 1px solid rgba(15, 23, 42, 0.08);
   }
 
-  /* ── Volunteer Dashboard Hero & Summary ───────────────────────── */
-  .volunteer-hero-grid {
+  /* ── Helper Dashboard Hero & Summary ───────────────────────── */
+  .helper-hero-grid {
     display: grid;
     grid-template-columns: 1.5fr 1fr;
     gap: 24px;
@@ -713,7 +790,7 @@
   }
 
   @media (max-width: 980px) {
-    .volunteer-hero-grid {
+    .helper-hero-grid {
       grid-template-columns: 1fr;
     }
   }
@@ -850,7 +927,7 @@
     gap: 6px;
   }
 
-  .volunteer-assigned {
+  .helper-assigned {
     padding: 8px;
     background: #f0f9ff;
     border-left: 3px solid #0ea5e9;
@@ -919,6 +996,81 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const mapElement = document.getElementById('dashboardMap');
+    const mapMessage = document.getElementById('dashboardMapMessage');
+    const mapCount = document.getElementById('dashboardMapCount');
+    if (!mapElement || !mapMessage || !mapCount) return;
+
+    if (typeof L === 'undefined') {
+      mapMessage.textContent = 'The map could not be loaded. Please refresh and try again.';
+      return;
+    }
+
+    const requestLocations = [
+      {% for req in requests %}
+      {
+        id: {{ req['id']|tojson }},
+        name: {{ req['name']|tojson }},
+        helpType: {{ req['help_type']|tojson }},
+        location: {{ req['location']|tojson }},
+        status: {{ req['status']|tojson }},
+        latitude: {{ req['request_latitude']|tojson }},
+        longitude: {{ req['request_longitude']|tojson }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ].filter(function (item) {
+      return Number.isFinite(Number(item.latitude))
+        && Number.isFinite(Number(item.longitude))
+        && Number(item.latitude) >= -90
+        && Number(item.latitude) <= 90
+        && Number(item.longitude) >= -180
+        && Number(item.longitude) <= 180;
+    });
+
+    const map = L.map(mapElement, { zoomControl: true }).setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const markers = [];
+    requestLocations.forEach(function (item) {
+      const marker = L.marker([Number(item.latitude), Number(item.longitude)]).addTo(map);
+      marker.bindPopup(
+        '<strong>Request #' + item.id + '</strong><br>'
+        + escapeMapHtml(item.helpType) + '<br>'
+        + escapeMapHtml(item.name) + '<br>'
+        + escapeMapHtml(item.location) + '<br>'
+        + '<a href="/request/' + item.id + '">View request</a>'
+      );
+      markers.push(marker);
+    });
+
+    mapCount.textContent = requestLocations.length + (requestLocations.length === 1 ? ' location' : ' locations');
+    if (markers.length === 1) {
+      map.setView(markers[0].getLatLng(), 14);
+      mapMessage.textContent = 'Select the marker to view request details.';
+    } else if (markers.length > 1) {
+      map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+      mapMessage.textContent = 'Select a marker to view request details.';
+    } else {
+      mapMessage.textContent = 'Location is not available for the current requests.';
+    }
+
+    window.requestAnimationFrame(function () {
+      map.invalidateSize();
+    });
+  });
+
+  function escapeMapHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, function (character) {
+      return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[character];
+    });
+  }
+</script>
 <script>
   function openAcceptModal(reqId, requesterName) {
     document.getElementById('modalRequesterName').textContent = requesterName;
@@ -931,6 +1083,93 @@
   // Close on overlay click
   document.getElementById('acceptModal').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
+  });
+
+  const completeTaskModal = document.getElementById('completeTaskModal');
+  const completeTaskForm = document.getElementById('completeTaskForm');
+  const confirmCompleteTask = document.getElementById('confirmCompleteTask');
+  const completionCodeInput = document.getElementById('completionVerificationCode');
+  const completionVerificationError = document.getElementById('completionVerificationError');
+  let completionSubmitting = false;
+  let completionCodeRequesting = false;
+
+  function closeCompleteTaskModal() {
+    if (completionSubmitting) return;
+    completeTaskModal.classList.remove('active');
+    completeTaskModal.setAttribute('aria-hidden', 'true');
+    completionCodeInput.value = '';
+    completionVerificationError.textContent = '';
+  }
+
+  document.querySelectorAll('.complete-task-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      if (completionCodeRequesting || completionSubmitting) return;
+      completionCodeRequesting = true;
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending Code...';
+      completionVerificationError.textContent = '';
+      document.getElementById('completeTaskRequester').textContent = button.dataset.requester;
+      document.getElementById('completeTaskHelpType').textContent = button.dataset.helpType;
+      document.getElementById('completeTaskLocation').textContent = button.dataset.location;
+      document.getElementById('completeTaskDescription').textContent = button.dataset.description;
+      completeTaskForm.dataset.requestId = button.dataset.requestId;
+      fetch('/api/request/' + button.dataset.requestId + '/completion-code', { method: 'POST', headers: { 'Accept': 'application/json' } })
+        .then(response => response.json().then(data => ({ response, data })))
+        .then(({ response, data }) => {
+          if (!response.ok) throw new Error(data.error || 'Unable to send verification code.');
+          completeTaskModal.classList.add('active');
+          completeTaskModal.setAttribute('aria-hidden', 'false');
+          completionCodeInput.focus();
+        })
+        .catch(error => {
+          completionVerificationError.textContent = error.message;
+          button.disabled = false;
+          button.innerHTML = '<i class="fas fa-flag-checkered"></i> Complete Task';
+        })
+        .finally(() => { completionCodeRequesting = false; });
+    });
+  });
+
+  document.getElementById('closeCompleteTaskModal').addEventListener('click', closeCompleteTaskModal);
+  document.getElementById('cancelCompleteTask').addEventListener('click', closeCompleteTaskModal);
+  completeTaskModal.addEventListener('click', event => {
+    if (event.target === completeTaskModal) closeCompleteTaskModal();
+  });
+  completeTaskForm.addEventListener('submit', event => {
+    if (completionSubmitting) {
+      event.preventDefault();
+      return;
+    }
+    event.preventDefault();
+    if (!/^\d{6}$/.test(completionCodeInput.value.trim())) {
+      completionVerificationError.textContent = 'Invalid verification code. Please try again.';
+      return;
+    }
+    completionSubmitting = true;
+    confirmCompleteTask.disabled = true;
+    confirmCompleteTask.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Completing...';
+    const payload = new FormData();
+    payload.append('code', completionCodeInput.value.trim());
+    fetch('/api/request/' + completeTaskForm.dataset.requestId + '/verify-completion', { method: 'POST', body: payload, headers: { 'Accept': 'application/json' } })
+      .then(response => response.json().then(data => ({ response, data })))
+      .then(({ response, data }) => {
+        if (!response.ok) throw new Error(data.error || 'Unable to verify completion.');
+        const requestCard = document.querySelector('.complete-task-btn[data-request-id="' + completeTaskForm.dataset.requestId + '"]')?.closest('.request-card');
+        if (requestCard) {
+          const completeButton = requestCard.querySelector('.complete-task-btn');
+          if (completeButton) completeButton.outerHTML = '<span class="req-final-status">✓ Task Completed</span>';
+          const statusBadge = requestCard.querySelector('.badge');
+          if (statusBadge) { statusBadge.className = 'badge badge-completed'; statusBadge.textContent = '🎉 Completed'; }
+        }
+        completionSubmitting = false;
+        closeCompleteTaskModal();
+      })
+      .catch(error => {
+        completionVerificationError.textContent = error.message;
+        completionSubmitting = false;
+        confirmCompleteTask.disabled = false;
+        confirmCompleteTask.innerHTML = '<i class="fas fa-check"></i> Verify &amp; Complete Task';
+      });
   });
 </script>
 {% endblock %}

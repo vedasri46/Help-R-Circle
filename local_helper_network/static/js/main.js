@@ -10,10 +10,128 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavScroll();
   initFlashAutoDismiss();
   initStatCounters();
+  initScrollReveal();
   initFormValidation();
   initAuthPages();
   initCheckboxCards();
+  initNotifications();
 });
+
+function initNotifications() {
+  const bell = document.getElementById('notificationBell');
+  const panel = document.getElementById('notificationPanel');
+  const list = document.getElementById('notificationList');
+  const badge = document.getElementById('notificationBadge');
+  const markAllReadBtn = document.getElementById('markAllReadBtn');
+  if (!bell || !panel || !list || !badge) return;
+
+  async function loadNotifications() {
+    try {
+      const response = await fetch('/api/notifications');
+      const data = await response.json();
+      const items = data.notifications || [];
+      const unread = (data.unread_count || 0);
+      badge.textContent = unread > 0 ? unread : '0';
+      badge.classList.toggle('hidden', unread === 0);
+      if (!items.length) {
+        list.innerHTML = '<div class="notification-empty">No notifications yet.</div>';
+        return;
+      }
+      list.innerHTML = items.map(item => `
+        <div class="notification-item ${item.is_read ? '' : 'unread'}" data-id="${item.id}">
+          <div class="notification-item-message">${escapeHtml(item.message)}</div>
+          <div class="notification-item-meta">
+            <span>${formatRelativeTime(item.created_at)}</span>
+            <span>${item.is_read ? 'Read' : 'Unread'}</span>
+          </div>
+        </div>
+      `).join('');
+      list.querySelectorAll('.notification-item').forEach(el => {
+        el.addEventListener('click', async () => {
+          const id = Number(el.dataset.id);
+          if (!id) return;
+          await fetch(`/api/notifications/${id}/read`, { method: 'POST' });
+          await loadNotifications();
+        });
+      });
+    } catch (error) {
+      console.error('Failed to load notifications', error);
+    }
+  }
+
+  bell.addEventListener('click', () => {
+    const isHidden = panel.classList.toggle('hidden');
+    if (!isHidden) {
+      loadNotifications();
+    }
+  });
+
+  markAllReadBtn?.addEventListener('click', async () => {
+    await fetch('/api/notifications/read-all', { method: 'POST' });
+    await loadNotifications();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!panel.contains(event.target) && !bell.contains(event.target)) {
+      panel.classList.add('hidden');
+    }
+  });
+
+  loadNotifications();
+
+  const socket = window.io ? window.io() : null;
+  window.helpRCircleSocket = socket;
+  if (socket) {
+    socket.on('connect', () => {
+      socket.emit('join', { userId: document.body.dataset.userId || null });
+    });
+    socket.on('notification', async (data) => {
+      bell.classList.remove('notification-arrive');
+      void bell.offsetWidth;
+      bell.classList.add('notification-arrive');
+      await loadNotifications();
+    });
+  }
+}
+
+function initScrollReveal() {
+  const elements = document.querySelectorAll('.reveal-on-scroll');
+  if (!elements.length) return;
+
+  document.documentElement.classList.add('js-ready');
+  if (!('IntersectionObserver' in window)) {
+    elements.forEach(element => element.classList.add('visible'));
+    return;
+  }
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px' });
+
+  elements.forEach(element => observer.observe(element));
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function formatRelativeTime(dateText) {
+  if (!dateText) return 'Just now';
+  const then = new Date(dateText.replace(' ', 'T'));
+  const diffMs = Date.now() - then.getTime();
+  const mins = Math.max(1, Math.round(diffMs / 60000));
+  if (mins < 2) return 'Just now';
+  if (mins < 60) return `${mins} minutes ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return 'Yesterday';
+  return `${days} days ago`;
+}
 
 
 // ── Auth Page Enhancements ───────────────────────────────────────────────────
@@ -34,10 +152,10 @@ function initAuthPages() {
   });
 
   const roleCards = document.querySelectorAll('.role-card');
-  const volunteerFields = document.querySelectorAll('.volunteer-fields');
+  const helperFields = document.querySelectorAll('.helper-fields');
 
-  function updateVolunteerFields(show) {
-    volunteerFields.forEach(section => section.classList.toggle('hidden', !show));
+  function updateHelperFields(show) {
+    helperFields.forEach(section => section.classList.toggle('hidden', !show));
   }
 
   roleCards.forEach(card => {
@@ -49,47 +167,13 @@ function initAuthPages() {
       roleCards.forEach(item => item.classList.remove('selected'));
       input.checked = true;
       card.classList.add('selected');
-      if (input.name === 'role') updateVolunteerFields(input.value === 'volunteer');
+      if (input.name === 'role') updateHelperFields(input.value === 'helper');
     });
   });
 
   const selectedRole = document.querySelector('.role-card input[name="role"]:checked');
   if (selectedRole) {
-    updateVolunteerFields(selectedRole.value === 'volunteer');
-  }
-
-  const passwordInput = document.querySelector('#signupForm #password');
-  const strengthFill = document.getElementById('passwordStrengthFill');
-  const strengthText = document.getElementById('passwordStrengthText');
-
-  if (passwordInput && strengthFill && strengthText) {
-    const updatePasswordStrength = value => {
-      let score = 0;
-      if (value.length >= 6) score += 1;
-      if (value.length >= 10) score += 1;
-      if (/[A-Z]/.test(value)) score += 1;
-      if (/[0-9]/.test(value)) score += 1;
-      if (/[^A-Za-z0-9]/.test(value)) score += 1;
-
-      const width = (score / 5) * 100;
-      strengthFill.style.width = `${width}%`;
-      if (score <= 1) {
-        strengthFill.style.background = '#DC2626';
-        strengthText.textContent = 'Very weak';
-      } else if (score <= 3) {
-        strengthFill.style.background = '#F59E0B';
-        strengthText.textContent = 'Fair strength';
-      } else {
-        strengthFill.style.background = '#047857';
-        strengthText.textContent = 'Strong password';
-      }
-    };
-
-    passwordInput.addEventListener('input', event => {
-      updatePasswordStrength(event.target.value);
-    });
-
-    updatePasswordStrength(passwordInput.value);
+    updateHelperFields(selectedRole.value === 'helper');
   }
 
   document.querySelectorAll('.auth-form').forEach(form => {
@@ -270,7 +354,7 @@ function markValid(field) {
 }
 
 
-// ── Checkbox Card Toggle (volunteer page) ────────────────────────────────────
+// ── Checkbox Card Toggle (helper page) ────────────────────────────────────
 function initCheckboxCards() {
   document.querySelectorAll(".checkbox-card input[type='checkbox']").forEach(cb => {
     cb.addEventListener("change", () => {

@@ -1,141 +1,461 @@
 {% extends "base.html" %}
 {% block title %}Track Your Request — Help R Circle{% endblock %}
 
+{% block extra_css %}
+{% if result and has_assigned_helper %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <section class="page-hero page-hero-teal">
   <div class="container">
-    <h1><i class="fas fa-search-location"></i> Track Your Request</h1>
-    <p>{% if result %}View the current status of your request.{% else %}Enter your Request ID to check the current status.{% endif %}</p>
+    <h1><i class="fas fa-search-location"></i> {{ t('track_page_title', 'Track Your Request') }}</h1>
+    <p>{% if result %}{{ t('track_page_subtitle', 'Watch the helper move live toward your location.') }}{% else %}{{ t('track_page_enter_id', 'Enter your Request ID to check the current status.') }}{% endif %}</p>
   </div>
 </section>
 
 <section class="section">
-  <div class="container" style="max-width:640px">
+  <div class="container" style="max-width:1200px">
 
     {% if result is none %}
     <div class="form-card">
-      <h2 class="form-card-title"><i class="fas fa-id-badge"></i> Enter Your Request ID</h2>
+      <h2 class="form-card-title"><i class="fas fa-id-badge"></i> {{ t('track_page_enter_id', 'Enter Your Request ID') }}</h2>
       <form method="POST" action="{{ url_for('track') }}" class="lhn-form">
         <div class="form-group track-input-group">
-          <label for="request_id"><i class="fas fa-hashtag"></i> Request ID</label>
+          <label for="request_id"><i class="fas fa-hashtag"></i> {{ t('track_request_id_heading', 'Request ID') }}</label>
           <input type="text" id="request_id" name="request_id"
                  placeholder="e.g. 3"
                  value="{{ request.form.get('request_id','') }}"
                  style="font-size:1.3rem; text-align:center; letter-spacing:2px"/>
         </div>
         <button type="submit" class="btn btn-primary btn-full">
-          <i class="fas fa-search"></i> Track Request
+          <i class="fas fa-search"></i> {{ t('track_submit', 'Track Request') }}
         </button>
       </form>
     </div>
     {% endif %}
 
-    {% if result %}
-    <div class="track-result">
-      <div class="track-result-header status-{{ result['status'] }}">
-        <div class="tr-id">#{{ result['id'] }}</div>
-        <div class="tr-status">
-          {% if result['status'] == 'pending' %}⏳ Request Submitted — Waiting for a volunteer
-          {% elif result['status'] == 'volunteer_assigned' %}✅ Accepted — A helper has accepted your request.
-          {% elif result['status'] == 'volunteer_on_way' %}🚗 Volunteer On The Way — Your volunteer is traveling to you.
-          {% elif result['status'] == 'volunteer_near_location' %}📍 Volunteer Near Location — The volunteer is close by.
-          {% elif result['status'] == 'volunteer_reached_location' %}🏁 Volunteer Reached Location — The volunteer has arrived.
-          {% elif result['status'] == 'completed' %}🎉 Completed — Task done!
-          {% else %}❌ Cancelled{% endif %}
+    {% if result and has_assigned_helper %}
+    <div class="track-result live-tracking-shell">
+      <div class="live-tracking-panel">
+        <div class="tracking-header">
+          <div>
+            <div class="tracking-id">#{{ result['id'] }}</div>
+            <h2>{{ result['help_type'] }}</h2>
+            <p>{{ result['location'] }}</p>
+            <span class="priority-badge priority-badge-{{ result['priority'] or 'normal' }}">
+              {% if result['priority'] == 'emergency' %}🔴 Emergency{% elif result['priority'] == 'urgent' %}🟡 Urgent{% else %}🟢 Normal{% endif %}
+            </span>
+          </div>
+          <div class="tracking-status-pill">
+            <i class="fas fa-route"></i>
+            <span>{% if result['status'] in ['accepted', 'helper_assigned'] %}Request Accepted{% elif result['status'] == 'helper_on_way' %}Helper Started Journey{% elif result['status'] == 'helper_near_location' %}Helper Near Your Location{% elif result['status'] == 'helper_reached_location' %}Helper Arrived{% elif result['status'] == 'completed' %}Task Completed{% else %}Request Submitted{% endif %}</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Timeline -->
-      <div class="status-timeline">
-        <div class="tl-step {% if result['status'] in ['pending','volunteer_assigned','volunteer_on_way','volunteer_near_location','volunteer_reached_location','completed'] %}done{% endif %}">
-          <div class="tl-dot"><i class="fas fa-check"></i></div>
-          <div class="tl-text">Submitted</div>
+        <div class="tracking-stats-grid">
+          <div class="tracking-stat-card">
+            <span class="tracking-stat-label">Helper</span>
+            <strong id="helperName">{% if helper_contact %}{{ helper_contact['name'] }}{% else %}Waiting for helper{% endif %}</strong>
+          </div>
+          <div class="tracking-stat-card">
+            <span class="tracking-stat-label">Status</span>
+            <strong id="liveStatus">{% if result['status'] in ['accepted', 'helper_assigned'] %}Request Accepted{% elif result['status'] == 'helper_on_way' %}Helper Started Journey{% elif result['status'] == 'helper_near_location' %}Helper Near Your Location{% elif result['status'] == 'helper_reached_location' %}Helper Arrived{% elif result['status'] == 'completed' %}Task Completed{% else %}Request Submitted{% endif %}</strong>
+          </div>
+          <div class="tracking-stat-card">
+            <span class="tracking-stat-label">Distance</span>
+            <strong id="distanceAway">--</strong>
+          </div>
+          <div class="tracking-stat-card">
+            <span class="tracking-stat-label">ETA</span>
+            <strong id="etaDisplay">Waiting for helper location...</strong>
+          </div>
+          <div class="tracking-stat-card">
+            <span class="tracking-stat-label">Last Updated</span>
+            <strong id="lastUpdated">--</strong>
+          </div>
         </div>
-        <div class="tl-line"></div>
-        <div class="tl-step {% if result['status'] in ['volunteer_assigned','volunteer_on_way','volunteer_near_location','volunteer_reached_location','completed'] %}done{% elif result['status']=='pending' %}active{% endif %}">
-          <div class="tl-dot"><i class="fas fa-user-check"></i></div>
-          <div class="tl-text">Accepted</div>
-        </div>
-        <div class="tl-line"></div>
-        <div class="tl-step {% if result['status'] in ['volunteer_on_way','volunteer_near_location','volunteer_reached_location','completed'] %}done{% elif result['status']=='volunteer_assigned' %}active{% endif %}">
-          <div class="tl-dot"><i class="fas fa-route"></i></div>
-          <div class="tl-text">On the Way</div>
-        </div>
-        <div class="tl-line"></div>
-        <div class="tl-step {% if result['status'] in ['volunteer_near_location','volunteer_reached_location','completed'] %}done{% elif result['status']=='volunteer_on_way' %}active{% endif %}">
-          <div class="tl-dot"><i class="fas fa-map-marker-alt"></i></div>
-          <div class="tl-text">Near Location</div>
-        </div>
-        <div class="tl-line"></div>
-        <div class="tl-step {% if result['status'] in ['volunteer_reached_location','completed'] %}done{% elif result['status'] in ['volunteer_near_location'] %}active{% endif %}">
-          <div class="tl-dot"><i class="fas fa-flag-checkered"></i></div>
-          <div class="tl-text">Reached</div>
-        </div>
-        <div class="tl-line"></div>
-        <div class="tl-step {% if result['status']=='completed' %}done{% endif %}">
-          <div class="tl-dot"><i class="fas fa-hands-helping"></i></div>
-          <div class="tl-text">Completed</div>
-        </div>
-      </div>
 
-      <!-- Details -->
-      <div class="track-details">
-        <div class="td-row"><span>Name</span><strong>{{ result['name'] }}</strong></div>
-        <div class="td-row"><span>Help Type</span><strong>{{ result['help_type'] }}</strong></div>
-        <div class="td-row"><span>Location</span><strong>{{ result['location'] }}</strong></div>
-        <div class="td-row"><span>Urgency</span>
-          <strong class="urgency-{{ result['urgency'] }}">{{ result['urgency']|capitalize }}</strong>
+        <div class="status-timeline live-status-timeline">
+          <div class="tl-step" data-timeline-stage="submitted"><div class="tl-dot"><i class="fas fa-file-circle-check"></i></div><div class="tl-text">Request Submitted <small>(Waiting for a helper)</small></div></div>
+          <div class="tl-line"></div>
+          <div class="tl-step" data-timeline-stage="accepted"><div class="tl-dot"><i class="fas fa-handshake"></i></div><div class="tl-text">Request Accepted</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-step" data-timeline-stage="helper_on_way"><div class="tl-dot"><i class="fas fa-route"></i></div><div class="tl-text">Helper Started Journey</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-step" data-timeline-stage="helper_near_location"><div class="tl-dot"><i class="fas fa-map-marker-alt"></i></div><div class="tl-text">Helper Near Your Location</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-step" data-timeline-stage="helper_reached_location"><div class="tl-dot"><i class="fas fa-flag-checkered"></i></div><div class="tl-text">Helper Arrived</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-step" data-timeline-stage="completed"><div class="tl-dot"><i class="fas fa-hands-helping"></i></div><div class="tl-text">Task Completed</div></div>
         </div>
-        <div class="td-row"><span>Description</span><strong>{{ result['description'] }}</strong></div>
-        <div class="td-row"><span>Submitted</span><strong>{{ result['created_at'] }}</strong></div>
-        <div class="td-row"><span>Last Updated</span><strong>{{ result['updated_at'] }}</strong></div>
-      </div>
 
-      <!-- Assigned Volunteer Card — Only show when accepted or completed -->
-      {% if result['status'] in ('volunteer_assigned', 'volunteer_on_way', 'volunteer_near_location', 'volunteer_reached_location', 'completed') and volunteer_contact %}
-      <div class="volunteer-card" style="margin-top: 28px;">
-        <div class="volunteer-card-header">
-          <h2><i class="fas fa-user-check"></i> Assigned Volunteer</h2>
-          <span class="status-badge status-{{ result['status'] }}">{{ result['status']|capitalize }}</span>
-        </div>
-        <div class="volunteer-card-body">
-          <div class="volunteer-info-grid">
-            <div class="volunteer-info-item">
-              <label>Name</label>
-              <p>{{ volunteer_contact['name'] }}</p>
+        <div class="live-map-card">
+          <div id="trackingMap" class="tracking-map"></div>
+          <div class="tracking-map-overlay">
+            <div class="helper-floating-card">
+              <div class="helper-avatar"><i class="fas fa-user"></i></div>
+              <div>
+                <h3 id="floatingHelperName">{% if helper_contact %}{{ helper_contact['name'] }}{% else %}Helper{% endif %}</h3>
+                <p id="floatingHelperMeta">Live location sharing</p>
+              </div>
+              <div class="helper-meta-badge"><i class="fas fa-walking"></i></div>
             </div>
-            <div class="volunteer-info-item">
-              <label>Phone</label>
-              <p><a href="tel:{{ volunteer_contact['phone'] }}">{{ volunteer_contact['phone'] }}</a></p>
-            </div>
-            <div class="volunteer-info-item">
-              <label>Email</label>
-              <p>{% if volunteer_contact['email'] %}<a href="mailto:{{ volunteer_contact['email'] }}">{{ volunteer_contact['email'] }}</a>{% else %}<span class="text-muted">Not provided</span>{% endif %}</p>
-            </div>
-            {% if volunteer_contact['availability'] %}
-            <div class="volunteer-info-item">
-              <label>Availability</label>
-              <p>{{ volunteer_contact['availability'] }}</p>
-            </div>
-            {% endif %}
           </div>
         </div>
       </div>
-      {% elif result['status'] == 'pending' %}
-      <!-- Pending Status Message -->
-      <div class="volunteer-card volunteer-card-pending" style="margin-top: 28px;">
-        <div class="volunteer-card-body">
-          <p><i class="fas fa-hourglass-half"></i> Waiting for a volunteer to accept this request. Volunteer information will appear here once someone accepts.</p>
+
+      <div class="tracking-sidebar">
+        <div class="sidebar-panel">
+          <h3><i class="fas fa-info-circle"></i> Request Overview</h3>
+          <div class="sidebar-list">
+            <div class="sidebar-item"><span>Name</span><strong>{{ result['name'] }}</strong></div>
+            <div class="sidebar-item"><span>Help Type</span><strong>{{ result['help_type'] }}</strong></div>
+            <div class="sidebar-item"><span>Description</span><strong>{{ result['description'] }}</strong></div>
+            <div class="sidebar-item"><span>Location</span><strong>{{ result['location'] }}</strong></div>
+            <div class="sidebar-item"><span>Priority</span><strong class="priority-text-{{ result['priority'] or 'normal' }}">{% if result['priority'] == 'emergency' %}Emergency{% elif result['priority'] == 'urgent' %}Urgent{% else %}Normal{% endif %}</strong></div>
+            <div class="sidebar-item"><span>Last Updated</span><strong>{{ result['updated_at'] }}</strong></div>
+          </div>
+        </div>
+
+        <div class="sidebar-panel">
+          <h3><i class="fas fa-user-check"></i> Helper Contact</h3>
+          {% if helper_contact %}
+          <div class="sidebar-list">
+            <div class="sidebar-item"><span>Name</span><strong>{{ helper_contact['name'] }}</strong></div>
+            <div class="sidebar-item"><span>Phone</span><strong><a href="tel:{{ helper_contact['phone'] }}">{{ helper_contact['phone'] }}</a></strong></div>
+            <div class="sidebar-item"><span>Email</span><strong>{% if helper_contact['email'] %}{{ helper_contact['email'] }}{% else %}Not provided{% endif %}</strong></div>
+          </div>
+          {% else %}
+          <p class="empty-state compact">Waiting for a helper to accept this request.</p>
+          {% endif %}
+        </div>
+
+        <div class="sidebar-panel">
+          <h3><i class="fas fa-broadcast-tower"></i> Live Status</h3>
+          <div id="trackingMessage" class="tracking-message">Waiting for helper location...</div>
         </div>
       </div>
-      {% endif %}
-
-      <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
-        <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline btn-lg"><i class="fas fa-arrow-left"></i> Back to My Requests</a>
+    </div>
+    {% elif result %}
+    <div class="waiting-for-helper-panel">
+      <div class="waiting-for-helper-icon" aria-hidden="true"><i class="fas fa-hourglass-half"></i></div>
+      <p class="section-tag">Request submitted</p>
+      <h2>Waiting for a Helper</h2>
+      <p>Your help request has been submitted successfully. The map and live helper location will become available once a helper accepts your request.</p>
+      <div class="status-timeline live-status-timeline" aria-label="Request status timeline">
+        <div class="tl-step active" data-timeline-stage="submitted"><div class="tl-dot"><i class="fas fa-file-circle-check"></i></div><div class="tl-text">Request Submitted <small>(Waiting for a helper)</small></div></div>
+        <div class="tl-line"></div>
+        <div class="tl-step" data-timeline-stage="accepted"><div class="tl-dot"><i class="fas fa-handshake"></i></div><div class="tl-text">Request Accepted</div></div>
+        <div class="tl-line"></div>
+        <div class="tl-step" data-timeline-stage="helper_on_way"><div class="tl-dot"><i class="fas fa-route"></i></div><div class="tl-text">Helper Started Journey</div></div>
+        <div class="tl-line"></div>
+        <div class="tl-step" data-timeline-stage="helper_near_location"><div class="tl-dot"><i class="fas fa-map-marker-alt"></i></div><div class="tl-text">Helper Near Your Location</div></div>
+        <div class="tl-line"></div>
+        <div class="tl-step" data-timeline-stage="helper_reached_location"><div class="tl-dot"><i class="fas fa-flag-checkered"></i></div><div class="tl-text">Helper Arrived</div></div>
+        <div class="tl-line"></div>
+        <div class="tl-step" data-timeline-stage="completed"><div class="tl-dot"><i class="fas fa-hands-helping"></i></div><div class="tl-text">Task Completed</div></div>
       </div>
+      <a href="{{ url_for('user_dashboard') }}" class="btn btn-primary">
+        <i class="fas fa-arrow-left"></i> Back to My Requests
+      </a>
     </div>
     {% endif %}
 
   </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+{% if result and not has_assigned_helper %}
+<script>
+  const pendingRequestId = {{ result['id'] }};
+  const pendingSocket = window.helpRCircleSocket;
+  let pendingStatus = {{ result['status']|tojson }};
+  function refreshPendingStatus() {
+    fetch('/api/request/' + pendingRequestId, { headers: { 'Accept': 'application/json' } })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (data && data.status && data.status !== pendingStatus) window.location.reload();
+      })
+      .catch(() => {});
+  }
+  if (pendingSocket) {
+    pendingSocket.on('request_status', data => {
+      if (data && Number(data.request_id) === pendingRequestId && data.status !== 'pending') {
+        window.location.reload();
+      }
+    });
+  }
+  refreshPendingStatus();
+  window.setInterval(refreshPendingStatus, 3000);
+</script>
+{% endif %}
+{% if result and has_assigned_helper %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const trackingMapElement = document.getElementById('trackingMap');
+  if (trackingMapElement && typeof L !== 'undefined') {
+  const requestId = {{ result['id'] if result else 0 }};
+  const requestLatRaw = {{ result['request_latitude'] if result and result['request_latitude'] is not none else 'null' }};
+  const requestLngRaw = {{ result['request_longitude'] if result and result['request_longitude'] is not none else 'null' }};
+  const helperLatRaw = {{ result['helper_latitude'] if result and result['helper_latitude'] is not none else 'null' }};
+  const helperLngRaw = {{ result['helper_longitude'] if result and result['helper_longitude'] is not none else 'null' }};
+  const assignedHelperId = {{ result['volunteer_id'] if result and result['volunteer_id'] is not none else 'null' }};
+  const requestLat = Number.isFinite(Number(requestLatRaw)) && Number(requestLatRaw) >= -90 && Number(requestLatRaw) <= 90 ? Number(requestLatRaw) : null;
+  const requestLng = Number.isFinite(Number(requestLngRaw)) && Number(requestLngRaw) >= -180 && Number(requestLngRaw) <= 180 ? Number(requestLngRaw) : null;
+  const helperLat = Number.isFinite(Number(helperLatRaw)) && Number(helperLatRaw) >= -90 && Number(helperLatRaw) <= 90 ? Number(helperLatRaw) : null;
+  const helperLng = Number.isFinite(Number(helperLngRaw)) && Number(helperLngRaw) >= -180 && Number(helperLngRaw) <= 180 ? Number(helperLngRaw) : null;
+  const helperName = {{ helper_contact['name'] | tojson if helper_contact else '"Helper"' }};
+  let statusValue = {{ result['status'] | tojson if result else '"pending"' }};
+  let statusPollId = null;
+
+  const map = L.map(trackingMapElement, { zoomControl: true, preferCanvas: true });
+  const initialMapPoint = requestLat != null && requestLng != null
+    ? [requestLat, requestLng]
+    : assignedHelperId && helperLat != null && helperLng != null
+      ? [helperLat, helperLng]
+      : null;
+  if (initialMapPoint) map.setView(initialMapPoint, 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  window.requestAnimationFrame(() => map.invalidateSize());
+
+  let requesterMarker = null;
+  if (requestLat != null && requestLng != null) {
+    requesterMarker = L.circleMarker([requestLat, requestLng], {
+    radius: 10,
+    color: '#0F766E',
+    fillColor: '#14B8A6',
+    fillOpacity: 0.95,
+    weight: 3
+    }).addTo(map).bindPopup('📍 Your Location');
+  }
+
+  let helperMarker = null;
+  let routeLine = null;
+  let trackingActive = false;
+  let watchId = null;
+  let locationPollId = null;
+  let latestLocation = null;
+  let helperPosition = null;
+  let routeCoordinates = null;
+
+  function clearHelperMarker() {
+    if (helperMarker) {
+      map.removeLayer(helperMarker);
+      helperMarker = null;
+    }
+    if (routeLine) {
+      map.removeLayer(routeLine);
+      routeLine = null;
+    }
+    helperPosition = null;
+    routeCoordinates = null;
+  }
+
+  function formatDistance(distanceKm) {
+    if (typeof distanceKm !== 'number' || Number.isNaN(distanceKm)) return '--';
+    return distanceKm < 1 ? `${(distanceKm * 1000).toFixed(0)} m away` : `${distanceKm.toFixed(1)} km away`;
+  }
+
+  function statusLabel() {
+    const labels = {
+      submitted: 'Request Submitted',
+      pending: 'Request Submitted',
+      accepted: 'Request Accepted',
+      helper_assigned: 'Request Accepted',
+      helper_on_way: 'Helper Started Journey',
+      helper_near_location: 'Helper Near Your Location',
+      helper_reached_location: 'Helper Arrived',
+      journey_started: 'Helper Started Journey',
+      near_location: 'Helper Near Your Location',
+      arrived: 'Helper Arrived',
+      completed: 'Task Completed'
+    };
+    return labels[statusValue] || 'Request Submitted';
+  }
+
+  function updateTimeline(nextStatus) {
+    const stages = ['submitted', 'accepted', 'helper_on_way', 'helper_near_location', 'helper_reached_location', 'completed'];
+    const aliases = { submitted: 'submitted', pending: 'submitted', helper_assigned: 'accepted' };
+    const currentStage = aliases[nextStatus] || nextStatus;
+    const currentIndex = stages.indexOf(currentStage);
+    document.querySelectorAll('[data-timeline-stage]').forEach(step => {
+      const stageIndex = stages.indexOf(step.dataset.timelineStage);
+      step.classList.remove('done', 'active');
+      if (nextStatus === 'completed' || stageIndex < currentIndex) {
+        step.classList.add('done');
+      } else if (nextStatus !== 'completed' && stageIndex === currentIndex) {
+        step.classList.add('active');
+      }
+    });
+  }
+
+  function applyRequestStatus(nextStatus) {
+    if (!nextStatus) return;
+    statusValue = nextStatus;
+    updateTimeline(statusValue);
+    const statusBox = document.getElementById('liveStatus');
+    if (statusBox) statusBox.textContent = statusLabel();
+  }
+
+  function updateStatusUi(message, statusText, distanceKm, etaText, updatedAt) {
+    const messageBox = document.getElementById('trackingMessage');
+    if (messageBox) messageBox.textContent = message;
+    const statusBox = document.getElementById('liveStatus');
+    if (statusBox) statusBox.textContent = statusText;
+    const distanceBox = document.getElementById('distanceAway');
+    if (distanceBox) distanceBox.textContent = distanceKm != null ? formatDistance(distanceKm) : '--';
+    const etaBox = document.getElementById('etaDisplay');
+    if (etaBox) etaBox.textContent = etaText || '--';
+    const updatedBox = document.getElementById('lastUpdated');
+    if (updatedBox) updatedBox.textContent = updatedAt || '--';
+    const helperNameBox = document.getElementById('helperName');
+    if (helperNameBox) helperNameBox.textContent = helperName || 'Helper';
+    const floatingName = document.getElementById('floatingHelperName');
+    if (floatingName) floatingName.textContent = helperName || 'Helper';
+  }
+
+  function fitMapToPoints() {
+    const points = [];
+    if (requestLat != null && requestLng != null) points.push([requestLat, requestLng]);
+    if (helperPosition) points.push(helperPosition);
+    if (points.length >= 2) {
+      const bounds = L.latLngBounds(points);
+      map.fitBounds(bounds.pad(0.2), { animate: true, duration: 0.6 });
+    } else if (helperPosition) {
+      map.setView(helperPosition, 15, { animate: true });
+    }
+  }
+
+  function drawRoute() {
+    if (!helperPosition || requestLat == null || requestLng == null) return;
+    const latlngs = routeCoordinates && routeCoordinates.length > 1
+      ? routeCoordinates
+      : [helperPosition, [requestLat, requestLng]];
+    if (routeLine) {
+      routeLine.setLatLngs(latlngs);
+    } else {
+      routeLine = L.polyline(latlngs, { color: '#2563EB', weight: 5, opacity: 0.9 }).addTo(map);
+    }
+  }
+
+  function moveHelperMarker(nextLat, nextLng) {
+    console.debug('[Help R Circle] Track helper marker display', {
+      helperId: assignedHelperId,
+      requestId,
+      latitude: nextLat,
+      longitude: nextLng
+    });
+    helperPosition = [nextLat, nextLng];
+    if (!helperMarker) {
+      helperMarker = L.marker(helperPosition, {
+        icon: L.divIcon({
+          html: '<div class="tracking-helper-marker"><i class="fas fa-user"></i></div>',
+          className: 'tracking-helper-icon',
+          iconSize: [34, 34],
+          iconAnchor: [17, 17]
+        })
+      }).addTo(map).bindPopup('🛵 Helper\'s Live Location');
+    } else {
+      helperMarker.setLatLng(helperPosition);
+    }
+    drawRoute();
+    fitMapToPoints();
+  }
+
+  function loadLocation() {
+    if (!requestId) return;
+    fetch(`/api/request/${requestId}/helper-location`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (['helper_reached_location', 'arrived', 'completed'].includes(data.status) && locationPollId !== null) {
+          clearInterval(locationPollId);
+          locationPollId = null;
+        }
+        if (data.available && data.assigned_helper_id && data.latitude != null && data.longitude != null) {
+          latestLocation = { latitude: data.latitude, longitude: data.longitude };
+          routeCoordinates = data.route_coordinates || null;
+          const nextLatitude = Number(data.latitude);
+          const nextLongitude = Number(data.longitude);
+            if (!Number.isFinite(nextLatitude) || !Number.isFinite(nextLongitude)
+              || nextLatitude < -90 || nextLatitude > 90
+              || nextLongitude < -180 || nextLongitude > 180) {
+            updateStatusUi('Helper location is unavailable because the coordinates are invalid.', statusLabel(), null, 'Currently unavailable', '--');
+            return;
+          }
+          moveHelperMarker(nextLatitude, nextLongitude);
+          const distanceKm = typeof data.distance_km === 'number' ? data.distance_km : null;
+          const etaText = data.route_available
+            ? (data.eta_minutes === 0 ? 'Arriving now' : `ETA: ~${data.eta_minutes} min`)
+            : 'Currently unavailable';
+          const updatedAt = data.updated_at ? new Date(data.updated_at.replace(' ', 'T')) : null;
+          const ageMs = updatedAt ? Date.now() - updatedAt.getTime() : Number.POSITIVE_INFINITY;
+          const stale = !updatedAt || ageMs > 120000;
+          updateStatusUi(
+            stale ? '🟠 Location may be outdated' : '🟢 Live Location · Updated just now',
+            statusLabel(),
+            distanceKm,
+            etaText,
+            data.updated_at || '--'
+          );
+          trackingActive = true;
+        } else {
+          clearHelperMarker();
+          updateStatusUi(
+            data.message || 'Waiting for a helper to accept this request...',
+            statusLabel(), null, 'Waiting for helper location...', '--'
+          );
+        }
+      })
+      .catch(() => {
+        updateStatusUi('Live location temporarily unavailable.', statusLabel(), null, 'Currently unavailable', '--');
+      });
+  }
+
+  function loadRequestStatus() {
+    fetch('/api/request/' + requestId, { headers: { 'Accept': 'application/json' } })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (data) applyRequestStatus(data.status);
+      })
+      .catch(() => {});
+  }
+
+  updateTimeline(statusValue);
+  const statusSocket = window.helpRCircleSocket;
+  if (statusSocket) {
+    statusSocket.on('request_status', data => {
+      if (data && Number(data.request_id) === requestId) applyRequestStatus(data.status);
+    });
+  }
+
+  if (requesterMarker) {
+    map.setView([requestLat, requestLng], 13);
+  } else {
+    updateStatusUi(
+      initialMapPoint
+        ? 'Waiting for helper location...'
+        : 'Request location is unavailable. Waiting for a valid location...',
+      statusLabel(), null, '--', '--'
+    );
+  }
+
+  if (requestId) {
+    loadRequestStatus();
+    statusPollId = setInterval(loadRequestStatus, 3000);
+    loadLocation();
+    locationPollId = setInterval(loadLocation, 3000);
+  }
+  } else if (trackingMapElement) {
+    trackingMapElement.textContent = 'Map library is unavailable. Please refresh and try again.';
+  }
+
+</script>
+{% endif %}
 {% endblock %}

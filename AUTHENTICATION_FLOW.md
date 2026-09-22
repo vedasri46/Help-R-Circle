@@ -100,7 +100,7 @@ ELSE
 **Logic:**
 ```
 IF user is NOT logged in
-  → Flash message: "Please log in to access the volunteer dashboard."
+   → Flash message: "Please log in to access the volunteer dashboard."
   → Redirect to /login (signup/login page)
 ELSE IF user role is NOT 'volunteer'
   → Flash error: "Only volunteers can access the dashboard."
@@ -111,7 +111,7 @@ ELSE (user is logged in AND is a volunteer)
 
 **Usage:** Update homepage button to:
 ```html
-<a href="{{ url_for('go_volunteer') }}">Become a Volunteer</a>
+   <a href="{{ url_for('go_volunteer') }}">Become a Helper</a>
 ```
 
 ---
@@ -324,7 +324,7 @@ CREATE TABLE users (
       │          ├─ YES → /request-help (form)
       │          └─ NO → /login (signup/login page)
       │
-      └─ Click "Become a Volunteer"
+      └─ Click "Become a Helper"
          └─> /go-volunteer
              └─> Check: user logged in AND volunteer?
                  ├─ NO, not logged in → /login (signup/login page)
@@ -380,7 +380,7 @@ Output:
 ### Test the Authentication Flow
 
 1. **Homepage → http://127.0.0.1:5000/**
-   - See "I Need Help" and "Become a Volunteer" buttons
+   - See "I Need Help" and "Become a Helper" buttons
    - Try clicking them without login
 
 2. **Sign Up → http://127.0.0.1:5000/signup**
@@ -421,7 +421,7 @@ Output:
 
 #### `templates/index.html`
 1. ✅ Updated "I Need Help" button to use `go_request_help` route
-2. ✅ Updated "Become a Volunteer" button to use `go_volunteer` route
+2. ✅ Updated "Become a Helper" button to use `go_volunteer` route
 
 #### `templates/base.html`
 1. ✅ Dashboard link now conditionally shown only to volunteers

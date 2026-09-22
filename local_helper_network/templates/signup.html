@@ -7,48 +7,48 @@
   <div class="auth-split">
     <section class="auth-hero signup-hero">
       <span class="hero-badge"><i class="fas fa-user-plus"></i> Join the community</span>
-      <h1>Create a premium account</h1>
-      <p class="hero-copy">Register as a user or volunteer and start helping your neighborhood with a polished, secure experience.</p>
+      <h1>{{ t('auth_signup_hero_title', 'Create your account') }}</h1>
+      <p class="hero-copy">{{ t('auth_signup_hero_subtitle', 'Register as a user or helper and start helping your neighborhood with a polished, secure experience.') }}</p>
 
       <div class="hero-features">
         <div class="feature-card">
           <i class="fas fa-tasks"></i>
           <div>
-            <strong>Simple onboarding</strong>
-            <p>Fast account creation with clear onboarding steps.</p>
+            <strong>{{ t('auth_signup_feature_1_title', 'Simple onboarding') }}</strong>
+            <p>{{ t('auth_signup_feature_1_desc', 'Fast account creation with clear onboarding steps.') }}</p>
           </div>
         </div>
         <div class="feature-card">
           <i class="fas fa-users"></i>
           <div>
-            <strong>Community first</strong>
-            <p>Join a trusted network of helpers and requesters.</p>
+            <strong>{{ t('auth_signup_feature_2_title', 'Community first') }}</strong>
+            <p>{{ t('auth_signup_feature_2_desc', 'Join a trusted network of helpers and requesters.') }}</p>
           </div>
         </div>
         <div class="feature-card">
           <i class="fas fa-lock"></i>
           <div>
-            <strong>Secure by design</strong>
-            <p>Encrypted passwords and secure authentication.</p>
+            <strong>{{ t('auth_signup_feature_3_title', 'Secure by design') }}</strong>
+            <p>{{ t('auth_signup_feature_3_desc', 'Encrypted passwords and secure authentication.') }}</p>
           </div>
         </div>
       </div>
 
-      <div class="hero-note">Admin accounts are created by the system. Please use the admin portal if you need administrator access.</div>
+      <div class="hero-note">{{ t('auth_signup_admin_note', 'Admin accounts are created by the system. Please use the admin portal if you need administrator access.') }}</div>
     </section>
 
     <section class="auth-panel auth-card">
       <header class="auth-card-header">
         <div>
-          <p class="eyebrow">Sign up</p>
-          <h2>Create your account</h2>
+          <p class="eyebrow">{{ t('nav_sign_up', 'Sign Up') }}</p>
+          <h2>{{ t('auth_signup_heading', 'Create your account') }}</h2>
         </div>
-        <span class="auth-pill"><i class="fas fa-user-circle"></i> User & volunteer onboarding</span>
+        <span class="auth-pill"><i class="fas fa-user-circle"></i> User & helper onboarding</span>
       </header>
 
       <form id="signupForm" method="POST" action="{{ url_for('signup') }}" class="auth-form lhn-form" novalidate>
         <div class="form-field">
-          <label for="username" class="form-label">Full name</label>
+          <label for="username" class="form-label">{{ t('signup_full_name_label', 'Full name') }}</label>
           <div class="input-with-icon">
             <i class="fas fa-user"></i>
             <input
@@ -62,11 +62,12 @@
               minlength="3"
             />
           </div>
-          <span class="form-hint">Minimum 3 characters.</span>
+          <span class="form-hint">{{ t('signup_username_hint', 'Minimum 3 characters.') }}</span>
         </div>
 
-        <div class="form-field">
-          <label for="email" class="form-label">Email address</label>
+        <!-- Email verification: send a link and verify from the email -->
+        <div class="form-field email-verification">
+          <label for="email" class="form-label">{{ t('signup_email_label', 'Email address') }}</label>
           <div class="input-with-icon">
             <i class="fas fa-envelope"></i>
             <input
@@ -79,11 +80,38 @@
               required
             />
           </div>
-          <span class="form-hint">We'll never share your email.</span>
+          {% set email_is_verified = pending_registration and (pending_registration.email_verified|int == 1) %}
+          {% if email_is_verified %}
+          <div id="emailVerificationStatus" class="email-verified-state" role="status">✓ Email Verified</div>
+          {% else %}
+          <div class="verification-action">
+            <button type="button" id="sendEmailLink" class="btn btn-primary email-link-button">Send Verification Link</button>
+          </div>
+          <span class="form-hint">{{ t('signup_email_hint', "We'll never share your email.") }}</span>
+          <div id="emailVerificationStatus" style="margin-top:8px;font-weight:600;display:none"></div>
+          {% endif %}
+        </div>
+
+        <!-- Phone number is stored as profile data; email verification is the only signup verification. -->
+        <div class="form-field phone-verification">
+          <label for="phone" class="form-label">{{ t('signup_phone_label', 'Phone number') }}</label>
+          <div class="input-with-icon">
+            <i class="fas fa-phone"></i>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              class="form-input"
+              placeholder="e.g. 9876543210"
+              value="{{ form_data.get('phone', '') }}"
+              required
+            />
+          </div>
+          <span class="form-hint">{{ t('signup_phone_hint', 'Enter a 10-digit Indian mobile number.') }}</span>
         </div>
 
         <div class="form-field">
-          <label for="password" class="form-label">Password</label>
+          <label for="password" class="form-label">{{ t('signup_password_label', 'Password') }}</label>
           <div class="input-with-icon password-row">
             <i class="fas fa-lock"></i>
             <input
@@ -99,17 +127,11 @@
               <i class="fas fa-eye"></i>
             </button>
           </div>
-          <span class="form-hint">Minimum 6 characters. Use numbers and symbols for strength.</span>
-          <div class="password-strength">
-            <div class="password-strength-meter">
-              <span id="passwordStrengthFill" class="password-strength-fill"></span>
-            </div>
-            <small id="passwordStrengthText" class="password-strength-text">Enter a strong password</small>
-          </div>
+          <span class="form-hint">{{ t('signup_password_hint', 'Minimum 6 characters. Use numbers and symbols for strength.') }}</span>
         </div>
 
         <div class="form-field">
-          <label for="confirm_password" class="form-label">Confirm password</label>
+          <label for="confirm_password" class="form-label">{{ t('signup_confirm_password_label', 'Confirm password') }}</label>
           <div class="input-with-icon password-row">
             <i class="fas fa-lock-open"></i>
             <input
@@ -124,30 +146,30 @@
         </div>
 
         <div class="form-field">
-          <label class="form-label">I want to...</label>
+          <label class="form-label">{{ t('signup_role_label', 'I want to...') }}</label>
           <div class="role-grid">
             <label class="role-card selected">
               <input type="radio" name="role" value="user" checked />
               <span class="role-icon"><i class="fas fa-hand-paper"></i></span>
               <div>
-                <strong>Request help</strong>
-                <small>Join as a user and submit requests.</small>
+                <strong>{{ t('signup_role_user_title', 'Request help') }}</strong>
+                <small>{{ t('signup_role_user_desc', 'Join as a user and submit requests.') }}</small>
               </div>
             </label>
             <label class="role-card">
-              <input type="radio" name="role" value="volunteer" />
+              <input type="radio" name="role" value="helper" />
               <span class="role-icon"><i class="fas fa-heart"></i></span>
               <div>
-                <strong>Volunteer</strong>
-                <small>Offer help to your community.</small>
+                <strong>{{ t('signup_role_helper_title', 'Helper') }}</strong>
+                <small>{{ t('signup_role_helper_desc', 'Offer help to your community.') }}</small>
               </div>
             </label>
           </div>
         </div>
 
-        <div class="volunteer-fields hidden">
+        <div class="helper-fields hidden">
           <div class="form-field">
-            <label for="skills" class="form-label">Skills</label>
+            <label for="skills" class="form-label">{{ t('signup_skills_label', 'Skills') }}</label>
             <div class="input-with-icon">
               <i class="fas fa-tools"></i>
               <input
@@ -161,7 +183,7 @@
           </div>
 
           <div class="form-field">
-            <label for="availability" class="form-label">Availability</label>
+            <label for="availability" class="form-label">{{ t('signup_availability_label', 'Availability') }}</label>
             <div class="input-with-icon">
               <i class="fas fa-calendar-alt"></i>
               <input
@@ -175,7 +197,7 @@
           </div>
 
           <div class="form-field">
-            <label for="about" class="form-label">About me</label>
+            <label for="about" class="form-label">{{ t('signup_about_label', 'About me') }}</label>
             <textarea
               id="about"
               name="about"
@@ -186,16 +208,123 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full auth-submit">
-          <span class="btn-text">Create Account</span>
+        <input type="hidden" id="pending_id" name="pending_id" value="" />
+        <button type="submit" id="createAccountBtn" class="btn btn-primary btn-full auth-submit" disabled>
+          <span class="btn-text">{{ t('auth_signup_submit', 'Create Account') }}</span>
         </button>
 
         <p class="auth-footer">
-          Already have an account?
-          <a href="{{ url_for('login') }}" class="auth-link">Log in here</a>
+          {{ t('auth_signup_prompt', 'Already have an account?') }}
+          <a href="{{ url_for('login') }}" class="auth-link">{{ t('signup_login_here_link', 'Log in here') }}</a>
         </p>
       </form>
     </section>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const pendingRegistration = {{ pending_registration|default(None)|tojson }};
+  let pendingId = pendingRegistration ? pendingRegistration.id : null;
+  let emailVerified = Boolean(
+    pendingRegistration &&
+    (pendingRegistration.email_verified === true || Number(pendingRegistration.email_verified) === 1)
+  );
+
+  const sendEmailBtn = document.getElementById('sendEmailLink');
+  const emailVerificationStatus = document.getElementById('emailVerificationStatus');
+
+  const pendingInput = document.getElementById('pending_id');
+  const createAccountBtn = document.getElementById('createAccountBtn');
+  const signupForm = document.getElementById('signupForm');
+  let emailLinkSending = false;
+
+  function updateCreateButton(){
+    createAccountBtn.disabled = !emailVerified;
+  }
+
+  sendEmailBtn && sendEmailBtn.addEventListener('click', async function(event){
+  event.preventDefault();
+  if (emailLinkSending) return;
+  emailLinkSending = true;
+  // Create the pending email-verification draft immediately.
+  emailVerified = false;
+  updateCreateButton();
+  const form = new FormData();
+  form.append('email', document.getElementById('email').value.trim());
+  form.append('username', document.getElementById('username').value.trim());
+  if (pendingId) form.append('pending_id', pendingId);
+  sendEmailBtn.disabled = true;
+  sendEmailBtn.classList.add('is-loading');
+  sendEmailBtn.textContent = 'Sending Verification Link...';
+    try{
+      const res = await fetch('/create-pending', { method: 'POST', body: form });
+      const j = await res.json();
+      if(j.ok){
+        pendingId = j.pending_id;
+        pendingInput.value = pendingId;
+        emailVerified = false;
+        updateCreateButton();
+        emailVerificationStatus.textContent = 'Verification link sent to your email. Please check your inbox.';
+        emailVerificationStatus.style.display = 'block';
+        alert('Verification link sent to your email. Please check your inbox.');
+      } else if (j.pending_id){
+        pendingId = j.pending_id; pendingInput.value = pendingId;
+        emailVerificationStatus.textContent = j.message || j.error || 'Unable to send verification link. Please try again.';
+        emailVerificationStatus.style.display = 'block';
+        alert(j.message || j.error || 'Unable to send verification link. Please try again.');
+      } else {
+        const message = j.message || j.error || 'Unable to send verification link. Please try again.';
+        emailVerificationStatus.textContent = message;
+        emailVerificationStatus.style.display = 'block';
+        alert(message);
+      }
+    }catch(e){
+      console.error(e); alert('Network error while creating pending registration.');
+    } finally {
+      emailLinkSending = false;
+      sendEmailBtn.disabled = false;
+      sendEmailBtn.classList.remove('is-loading');
+      sendEmailBtn.textContent = 'Send Verification Link';
+    }
+  });
+
+  // intercept Create Account: finalize pending via AJAX
+  signupForm && signupForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if(!emailVerified){
+      alert('Please verify your email before creating your account.');
+      return;
+    }
+    if(!pendingId) { alert('Missing pending registration id. Please request a verification link first.'); return; }
+    try{
+      const payload = new FormData(signupForm);
+      payload.set('pending_id', pendingId);
+      const res = await fetch('/finalize-pending', {
+        method: 'POST',
+        body: payload,
+        headers: { 'Accept': 'application/json' }
+      });
+      const j = await res.json();
+      if(j.ok){
+        alert('Registration complete. You can now log in.');
+        window.location = '/login';
+      } else {
+        alert('Failed to finalize registration: ' + (j.error||j.message||'unknown'));
+      }
+    }catch(e){
+      console.error('Final registration request failed:', e);
+      alert('Unable to complete registration. Please try again.');
+    }
+  });
+
+  // initial state
+  if (emailVerified) {
+    pendingInput.value = pendingId || '';
+  }
+  updateCreateButton();
+});
+</script>
 {% endblock %}
