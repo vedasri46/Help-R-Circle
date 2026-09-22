@@ -706,7 +706,7 @@ def create_pending():
             )
     except Exception as e:
         app.logger.exception('create_pending failed: %s', e)
-        return jsonify({'error': 'Unable to create pending registration'}), 500
+        return jsonify({'error': f'Unable to create pending registration: {str(e)}'}), 500
 
     try:
         send_verification_email(email, (data.get('username') or '').strip() or 'there', token)
