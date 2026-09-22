@@ -246,25 +246,46 @@ def confirm_verification_token(token, expiration=VERIFICATION_TOKEN_EXPIRATION):
         return payload.get("email")
     return payload
 
-
 def send_verification_email(email, username, token):
     verification_url = url_for('verify_email', token=token, _external=True)
+
     subject = "Verify your Help R Circle email"
+
     body = (
         f"Hello {username},\n\n"
-        "Thank you for registering with Help R Circle. Please verify your email by clicking the link below:\n\n"
+        "Thank you for registering with Help R Circle. "
+        "Please verify your email by clicking the link below:\n\n"
         f"{verification_url}\n\n"
         "If you did not register for this account, please ignore this message.\n\n"
-        "Thanks,\nHelp R Circle Team"
+        "Thanks,\n"
+        "Help R Circle Team"
     )
-    msg = Message(subject=subject, recipients=[email], body=body)
-    # Log intent to send (without revealing secrets)
-    app.logger.info('Preparing verification email to %s from %s', email, app.config.get('MAIL_DEFAULT_SENDER'))
+
+    app.logger.info("Preparing verification email to %s", email)
+
     try:
-        mail.send(msg)
-        app.logger.info('Verification email sent to %s', email)
+        import resend
+
+        resend.api_key = os.environ.get("RESEND_API_KEY")
+
+        if not resend.api_key:
+            raise RuntimeError("RESEND_API_KEY is not configured")
+
+        resend.Emails.send({
+            "from": "Help R Circle <onboarding@resend.dev>",
+            "to": [email],
+            "subject": subject,
+            "text": body
+        })
+
+        app.logger.info("Verification email sent to %s", email)
+
     except Exception as e:
-        app.logger.exception('Failed to send verification email to %s: %s', email, e)
+        app.logger.exception(
+            "Failed to send verification email to %s: %s",
+            email,
+            e
+        )
         raise
 
 
