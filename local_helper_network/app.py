@@ -306,7 +306,64 @@ def send_verification_email(email, username, token):
             e
         )
         raise
-    
+
+def send_notification_email(email, subject, message):
+    app.logger.info("Preparing notification email to %s", email)
+
+    try:
+        import requests
+
+        public_key = os.environ.get("EMAILJS_PUBLIC_KEY")
+        private_key = os.environ.get("EMAILJS_PRIVATE_KEY")
+
+        if not public_key:
+            raise RuntimeError("EMAILJS_PUBLIC_KEY is not configured")
+
+        if not private_key:
+            raise RuntimeError("EMAILJS_PRIVATE_KEY is not configured")
+
+        payload = {
+            "service_id": "service_v7k9v6m",
+            "template_id": "template_m2k2ese",
+            "user_id": public_key,
+            "accessToken": private_key,
+            "template_params": {
+                "email": email,
+                "subject": subject,
+                "message": message
+            }
+        }
+
+        response = requests.post(
+            "https://api.emailjs.com/api/v1.0/email/send",
+            json=payload,
+            timeout=15
+        )
+
+        app.logger.info(
+            "EmailJS notification response: status=%s body=%s",
+            response.status_code,
+            response.text
+        )
+
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"EmailJS notification error {response.status_code}: {response.text}"
+            )
+
+        app.logger.info(
+            "Notification email sent to %s",
+            email
+        )
+
+    except Exception as e:
+        app.logger.exception(
+            "Failed to send notification email to %s: %s",
+            email,
+            e
+        )
+        raise
+
 def create_notification(user_id, message, notification_type=None, related_request_id=None):
     if not user_id:
         return None
@@ -334,15 +391,41 @@ def create_notification(user_id, message, notification_type=None, related_reques
     return nid
 
 
-def notify_user(user_id, message, email_subject=None, email_message=None, notification_type=None, related_request_id=None):
+def notify_user(
+    user_id,
+    message,
+    email_subject=None,
+    email_message=None,
+    notification_type=None,
+    related_request_id=None
+):
     if not user_id:
         return None
-    notification = create_notification(user_id, message, notification_type=notification_type, related_request_id=related_request_id)
+
+    notification = create_notification(
+        user_id,
+        message,
+        notification_type=notification_type,
+        related_request_id=related_request_id
+    )
+
     if email_subject and email_message:
         user = db.get_user_by_id(user_id)
         recipient = user.get('email') if user else None
+
         if recipient:
-            send_notification_email(recipient, email_subject, email_message)
+            try:
+                send_notification_email(
+                    recipient,
+                    email_subject,
+                    email_message
+                )
+            except Exception:
+                app.logger.exception(
+                    "Notification email failed for user %s",
+                    user_id
+                )
+
     return notification
 
 
