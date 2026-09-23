@@ -246,37 +246,48 @@ def confirm_verification_token(token, expiration=VERIFICATION_TOKEN_EXPIRATION):
         return payload.get("email")
     return payload
 
+
 def send_verification_email(email, username, token):
-    verification_url = url_for('verify_email', token=token, _external=True)
-
-    subject = "Verify your Help R Circle email"
-
-    body = (
-        f"Hello {username},\n\n"
-        "Thank you for registering with Help R Circle. "
-        "Please verify your email by clicking the link below:\n\n"
-        f"{verification_url}\n\n"
-        "If you did not register for this account, please ignore this message.\n\n"
-        "Thanks,\n"
-        "Help R Circle Team"
+    verification_url = url_for(
+        'verify_email',
+        token=token,
+        _external=True
     )
 
     app.logger.info("Preparing verification email to %s", email)
 
     try:
-        import resend
+        import requests
 
-        resend.api_key = os.environ.get("RESEND_API_KEY")
+        public_key = os.environ.get("EMAILJS_PUBLIC_KEY")
+        private_key = os.environ.get("EMAILJS_PRIVATE_KEY")
 
-        if not resend.api_key:
-            raise RuntimeError("RESEND_API_KEY is not configured")
+        if not public_key:
+            raise RuntimeError("EMAILJS_PUBLIC_KEY is not configured")
 
-        resend.Emails.send({
-            "from": "Help R Circle <onboarding@resend.dev>",
-            "to": [email],
-            "subject": subject,
-            "text": body
-        })
+        if not private_key:
+            raise RuntimeError("EMAILJS_PRIVATE_KEY is not configured")
+
+        response = requests.post(
+            "https://api.emailjs.com/api/v1.0/email/send",
+            json={
+                "service_id": "service_v7k9v6m",
+                "template_id": "template_m2k2ese",
+                "user_id": public_key,
+                "accessToken": private_key,
+                "template_params": {
+                    "username": username,
+                    "verification_link": verification_url,
+                    "email": email
+                }
+            },
+            timeout=15
+        )
+
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"EmailJS error {response.status_code}: {response.text}"
+            )
 
         app.logger.info("Verification email sent to %s", email)
 
@@ -287,20 +298,6 @@ def send_verification_email(email, username, token):
             e
         )
         raise
-
-
-def send_notification_email(recipient_email, subject, message):
-    if not recipient_email:
-        return False
-    msg = Message(subject=subject, recipients=[recipient_email], body=message)
-    try:
-        mail.send(msg)
-        app.logger.info('Notification email sent to %s', recipient_email)
-        return True
-    except Exception as exc:
-        app.logger.exception('Failed to send notification email to %s: %s', recipient_email, exc)
-        return False
-
 
 def create_notification(user_id, message, notification_type=None, related_request_id=None):
     if not user_id:
