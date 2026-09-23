@@ -2007,57 +2007,144 @@ def get_assigned_helper_request(req_id):
 @helper_required
 def request_completion_code(req_id):
     req, helper = get_assigned_helper_request(req_id)
+
     if not req:
-        return jsonify({"ok": False, "error": "Not authorized for this request."}), 403
+        return jsonify({
+            "ok": False,
+            "error": "Not authorized for this request."
+        }), 403
+
     if req['status'] == 'completed':
-        return jsonify({"ok": False, "error": "This task has already been completed."}), 409
+        return jsonify({
+            "ok": False,
+            "error": "This task has already been completed."
+        }), 409
+
     if req['status'] not in ('helper_reached_location', 'arrived'):
-        return jsonify({"ok": False, "error": "The task can only be completed after the helper has arrived."}), 409
+        return jsonify({
+            "ok": False,
+            "error": "The task can only be completed after the helper has arrived."
+        }), 409
 
     sent_at = datetime.now()
+
+    # Prevent requesting another code too quickly
     if req.get('completion_code_sent_at'):
         try:
-            previous_sent_at = datetime.strptime(req['completion_code_sent_at'], "%Y-%m-%d %H:%M:%S")
-            if (sent_at - previous_sent_at).total_seconds() < COMPLETION_CODE_COOLDOWN_SECONDS:
-                return jsonify({"ok": False, "error": "Please wait before requesting another code."}), 429
+            previous_sent_at = datetime.strptime(
+                req['completion_code_sent_at'],
+                "%Y-%m-%d %H:%M:%S"
+            )
+
+            if (
+                sent_at - previous_sent_at
+            ).total_seconds() < COMPLETION_CODE_COOLDOWN_SECONDS:
+                return jsonify({
+                    "ok": False,
+                    "error": "Please wait before requesting another code."
+                }), 429
+
         except ValueError:
             pass
 
-    requester = db.get_user_by_id(req.get('user_id')) if req.get('user_id') else None
-    requester_email = requester['email'] if requester and requester['email'] else None
-    if not requester_email:
-        return jsonify({"ok": False, "error": "The requester does not have a registered email address."}), 422
+    # Get requester
+    requester = (
+        db.get_user_by_id(req.get('user_id'))
+        if req.get('user_id')
+        else None
+    )
 
+    if not requester:
+        return jsonify({
+            "ok": False,
+            "error": "Requester account not found."
+        }), 404
+
+    requester_email = requester.get('email')
+
+    if not requester_email:
+        return jsonify({
+            "ok": False,
+            "error": "The requester does not have a registered email address."
+        }), 422
+
+    # Generate 6-digit verification code
     code = f"{secrets.randbelow(900000) + 100000:06d}"
-    expires_at = sent_at + timedelta(minutes=COMPLETION_CODE_TTL_MINUTES)
+
+    expires_at = sent_at + timedelta(
+        minutes=COMPLETION_CODE_TTL_MINUTES
+    )
+
     sent_at_text = sent_at.strftime("%Y-%m-%d %H:%M:%S")
     expires_at_text = expires_at.strftime("%Y-%m-%d %H:%M:%S")
-    message = Message(
-        subject=f"Help R Circle completion code for request #{req_id}",
-        recipients=[requester_email],
-        body=(
-            f"Hello {requester['username']},\n\n"
-            f"A helper has reported that Help R Circle request #{req_id} has arrived.\n"
-            "Please provide this verification code to the helper only if the requested task was completed:\n\n"
-            f"{code}\n\n"
-            f"This code expires in {COMPLETION_CODE_TTL_MINUTES} minutes.\n\n"
-            "If the task was not completed, do not share the code.\n\n"
-            "Help R Circle Team"
-        ),
-    )
-    try:
-        mail.send(message)
-    except Exception:
-        app.logger.exception("Failed to send completion code for request %s", req_id)
-        return jsonify({"ok": False, "error": "Unable to send the verification code. Please try again."}), 503
 
+    # Store the hashed code first
     saved = db.save_completion_code(
-        req_id, helper['id'], generate_password_hash(code), expires_at_text, sent_at_text
+        req_id,
+        helper['id'],
+        generate_password_hash(code),
+        expires_at_text,
+        sent_at_text
     )
-    if not saved:
-        return jsonify({"ok": False, "error": "The task is no longer available for completion."}), 409
-    return jsonify({"ok": True, "message": "A verification code has been sent to the user."})
 
+    if not saved:
+        return jsonify({
+            "ok": False,
+            "error": "The task is no longer available for completion."
+        }), 409
+
+    # Email content
+    email_subject = (
+        f"Help R Circle - Task Completion Code #{req_id}"
+    )
+
+    email_message = (
+        f"Hello {requester.get('username', 'there')},\n\n"
+        f"A helper has reported that they have arrived for "
+        f"Help R Circle request #{req_id}.\n\n"
+        f"Your task completion verification code is:\n\n"
+        f"{code}\n\n"
+        f"This code expires in "
+        f"{COMPLETION_CODE_TTL_MINUTES} minutes.\n\n"
+        f"Only share this code with the helper if the requested "
+        f"task has actually been completed.\n\n"
+        f"If the task was not completed, do not share the code.\n\n"
+        f"Regards,\n"
+        f"Help R Circle Team"
+    )
+
+    # Website notification
+    notification_message = (
+        f"🔐 Your task completion verification code for "
+        f"request #{req_id} is {code}. "
+        f"This code expires in {COMPLETION_CODE_TTL_MINUTES} minutes."
+    )
+
+    try:
+        notify_user(
+            requester['id'],
+            notification_message,
+            email_subject=email_subject,
+            email_message=email_message,
+            notification_type='completion_code',
+            related_request_id=req_id
+        )
+    except Exception:
+        # The notification function already protects the request
+        # from email failures, but keep this route safe.
+        app.logger.exception(
+            "Failed to send completion notifications for request %s",
+            req_id
+        )
+
+    return jsonify({
+        "ok": True,
+        "message": (
+            "A verification code has been sent to the requester "
+            "by email and displayed in their notifications."
+        ),
+        "expires_in_minutes": COMPLETION_CODE_TTL_MINUTES
+    })
 
 @app.route("/api/request/<int:req_id>/verify-completion", methods=["POST"])
 @helper_required
