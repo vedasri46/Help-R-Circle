@@ -252,10 +252,24 @@ document.addEventListener('DOMContentLoaded', function(){
   // Create the pending email-verification draft immediately.
   emailVerified = false;
   updateCreateButton();
- const form = new FormData(signupForm);
-form.append('email', document.getElementById('email').value.trim());
-form.append('username', document.getElementById('username').value.trim());
-if (pendingId) form.append('pending_id', pendingId);
+ 
+const form = new FormData(signupForm);
+
+form.set('username', document.getElementById('username').value.trim());
+form.set('email', document.getElementById('email').value.trim());
+form.set('phone', document.getElementById('phone').value.trim());
+form.set('password', document.getElementById('password').value);
+form.set('confirm_password', document.getElementById('confirm_password').value);
+
+if (pendingId) {
+    form.set('pending_id', pendingId);
+}
+
+console.log("USERNAME:", JSON.stringify(form.get("username")));
+console.log("EMAIL:", JSON.stringify(form.get("email")));
+console.log("PHONE:", JSON.stringify(form.get("phone")));
+console.log("PASSWORD:", JSON.stringify(form.get("password")));
+console.log("CONFIRM PASSWORD:", JSON.stringify(form.get("confirm_password")));
   sendEmailBtn.disabled = true;
   sendEmailBtn.classList.add('is-loading');
   sendEmailBtn.textContent = 'Sending Verification Link...';

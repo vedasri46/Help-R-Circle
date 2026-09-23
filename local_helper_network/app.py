@@ -268,20 +268,28 @@ def send_verification_email(email, username, token):
         if not private_key:
             raise RuntimeError("EMAILJS_PRIVATE_KEY is not configured")
 
+        payload = {
+            "service_id": "service_v7k9v6m",
+            "template_id": "template_m2k2ese",
+            "user_id": public_key,
+            "accessToken": private_key,
+            "template_params": {
+                "username": username,
+                "verification_link": verification_url,
+                "email": email
+            }
+        }
+
         response = requests.post(
             "https://api.emailjs.com/api/v1.0/email/send",
-            json={
-                "service_id": "service_v7k9v6m",
-                "template_id": "template_m2k2ese",
-                "user_id": public_key,
-                "accessToken": private_key,
-                "template_params": {
-                    "username": username,
-                    "verification_link": verification_url,
-                    "email": email
-                }
-            },
+            json=payload,
             timeout=15
+        )
+
+        app.logger.info(
+            "EmailJS response: status=%s body=%s",
+            response.status_code,
+            response.text
         )
 
         if response.status_code != 200:
@@ -298,7 +306,7 @@ def send_verification_email(email, username, token):
             e
         )
         raise
-
+    
 def create_notification(user_id, message, notification_type=None, related_request_id=None):
     if not user_id:
         return None
@@ -690,6 +698,8 @@ def signup():
 @app.route('/create-pending', methods=['POST'])
 def create_pending():
     data = request.form or request.get_json() or {}
+    app.logger.info("CREATE_PENDING FORM DATA: %s", dict(request.form))
+    app.logger.info("RECEIVED PHONE: %r", request.form.get('phone'))
 
     email = (data.get('email') or '').strip()
 
