@@ -252,10 +252,10 @@ document.addEventListener('DOMContentLoaded', function(){
   // Create the pending email-verification draft immediately.
   emailVerified = false;
   updateCreateButton();
-  const form = new FormData();
-  form.append('email', document.getElementById('email').value.trim());
-  form.append('username', document.getElementById('username').value.trim());
-  if (pendingId) form.append('pending_id', pendingId);
+ const form = new FormData(signupForm);
+form.append('email', document.getElementById('email').value.trim());
+form.append('username', document.getElementById('username').value.trim());
+if (pendingId) form.append('pending_id', pendingId);
   sendEmailBtn.disabled = true;
   sendEmailBtn.classList.add('is-loading');
   sendEmailBtn.textContent = 'Sending Verification Link...';

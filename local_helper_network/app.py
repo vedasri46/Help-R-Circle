@@ -690,68 +690,235 @@ def signup():
 @app.route('/create-pending', methods=['POST'])
 def create_pending():
     data = request.form or request.get_json() or {}
+
     email = (data.get('email') or '').strip()
+
     if not email or '@' not in email:
         return jsonify({'error': 'Invalid email'}), 400
 
+    # Check whether this email already belongs to a completed account
     existing = db.get_user_by_email(email)
+
     if existing:
-        return jsonify({'error': 'Email address already registered'}), 409
+        return jsonify({
+            'error': 'Email address already registered'
+        }), 409
 
     pending_id = data.get('pending_id') or session.get('pending_id')
+
     try:
-        pending = db.get_pending_by_id(int(pending_id)) if pending_id else None
+        pending = (
+            db.get_pending_by_id(int(pending_id))
+            if pending_id
+            else None
+        )
+
+        # ---------------------------------------------------------
+        # Existing pending registration
+        # ---------------------------------------------------------
         if pending and pending.get('email') == email:
+
             if pending.get('email_verified'):
                 return jsonify({
                     'ok': False,
                     'error': 'email_already_verified',
-                    'message': 'This email is already verified. Continue with phone verification.',
+                    'message': 'This email is already verified. Continue with account creation.',
                     'pending_id': pending['id'],
                 }), 409
-            token = pending.get('email_token') or generate_verification_token(email)
+
+            pending_username = (
+                data.get('username')
+                or pending.get('username')
+                or ''
+            ).strip()
+
+            pending_phone = normalize_indian_phone(
+                (
+                    data.get('phone')
+                    or pending.get('phone')
+                    or ''
+                ).strip()
+            )
+
+            pending_password = (
+                data.get('password')
+                or ''
+            ).strip()
+
+            pending_role = (
+                data.get('role')
+                or pending.get('role')
+                or 'user'
+            ).strip()
+
+            if not pending_username or len(pending_username) < 3:
+                return jsonify({
+                    'error': 'Username must be at least 3 characters'
+                }), 400
+
+            if not pending_password or len(pending_password) < 6:
+                return jsonify({
+                    'error': 'Password must be at least 6 characters'
+                }), 400
+
+            if not pending_phone:
+                return jsonify({
+                    'error': 'Please enter a valid 10-digit Indian mobile number'
+                }), 400
+
+            if pending_role not in ('user', 'helper'):
+                pending_role = 'user'
+
+            db.update_pending_registration(
+                pending['id'],
+                pending_username,
+                generate_password_hash(pending_password),
+                pending_role,
+                pending_phone,
+                (data.get('location') or '').strip(),
+                (data.get('skills') or '').strip(),
+                (data.get('availability') or '').strip(),
+                (data.get('about') or '').strip(),
+            )
+
+            token = (
+                pending.get('email_token')
+                or generate_verification_token(email)
+            )
+
             if not pending.get('email_token'):
                 with db.connect() as conn:
-                    conn.execute("UPDATE pending_registrations SET email_token = ?, email_token_sent_at = datetime('now','localtime') WHERE id = ?", (token, pending['id']))
+                    conn.execute(
+                        """
+                        UPDATE pending_registrations
+                        SET email_token = ?,
+                            email_token_sent_at = datetime('now','localtime')
+                        WHERE id = ?
+                        """,
+                        (token, pending['id'])
+                    )
+
+        # ---------------------------------------------------------
+        # New pending registration
+        # ---------------------------------------------------------
         else:
             token = generate_verification_token(email)
+
+            pending_username = (
+                data.get('username') or ''
+            ).strip()
+
+            pending_phone = normalize_indian_phone(
+                (data.get('phone') or '').strip()
+            )
+
+            pending_password = (
+                data.get('password') or ''
+            ).strip()
+
+            pending_role = (
+                data.get('role') or 'user'
+            ).strip()
+
+            if not pending_username or len(pending_username) < 3:
+                return jsonify({
+                    'error': 'Username must be at least 3 characters'
+                }), 400
+
+            if not pending_password or len(pending_password) < 6:
+                return jsonify({
+                    'error': 'Password must be at least 6 characters'
+                }), 400
+
+            if not pending_phone:
+                return jsonify({
+                    'error': 'Please enter a valid 10-digit Indian mobile number'
+                }), 400
+
+            if pending_role not in ('user', 'helper'):
+                pending_role = 'user'
+
             pending_id = db.create_pending_registration(
-                username=(data.get('username') or '').strip(),
+                username=pending_username,
                 email=email,
-                password_hash=generate_password_hash(uuid.uuid4().hex),
-                role='user',
+                password_hash=generate_password_hash(
+                    pending_password
+                ),
+                role=pending_role,
+                phone=pending_phone,
+                helper_location=(
+                    data.get('location') or ''
+                ).strip(),
+                helper_skills=(
+                    data.get('skills') or ''
+                ).strip(),
+                helper_availability=(
+                    data.get('availability') or ''
+                ).strip(),
+                helper_about=(
+                    data.get('about') or ''
+                ).strip(),
                 email_token=token,
             )
-    except Exception as e:
-        app.logger.exception('create_pending failed: %s', e)
-        return jsonify({'error': f'Unable to create pending registration: {str(e)}'}), 500
 
+    except Exception as e:
+        app.logger.exception(
+            'create_pending failed: %s',
+            e
+        )
+
+        return jsonify({
+            'error': f'Unable to create pending registration: {str(e)}'
+        }), 500
+
+    # -------------------------------------------------------------
+    # Send verification email
+    # -------------------------------------------------------------
     try:
-        send_verification_email(email, (data.get('username') or '').strip() or 'there', token)
-    except Exception as e:
-        app.logger.exception('send verification failed (create_pending): %s', e)
-        # still return pending id so user can retry email
-        return jsonify({'ok': False, 'pending_id': pending_id, 'message': 'Failed to send verification email'}), 502
+        send_verification_email(
+            email,
+            (data.get('username') or '').strip() or 'there',
+            token
+        )
 
+    except Exception as e:
+        app.logger.exception(
+            'send verification failed (create_pending): %s',
+            e
+        )
+
+        return jsonify({
+            'ok': False,
+            'pending_id': pending_id,
+            'message': 'Failed to send verification email'
+        }), 502
+
+    # Save pending registration in session
     session['pending_id'] = pending_id
     session.pop('email_verification_completed_for', None)
-    return jsonify({'ok': True, 'pending_id': pending_id}), 200
 
+    return jsonify({
+        'ok': True,
+        'pending_id': pending_id
+    }), 200
 
 @app.route('/finalize-pending', methods=['POST'])
 def finalize_pending():
     data = request.form or request.get_json() or {}
     pending_id = data.get('pending_id')
+
     is_ajax = (
         request.is_json
         or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         or 'application/json' in request.headers.get('Accept', '')
     )
+
     if not pending_id:
         if is_ajax:
             return jsonify({'error': 'missing'}), 400
         flash_t('flash_invalid_user', 'Invalid pending identifier.', 'error')
         return redirect(url_for('signup'))
+
     try:
         pending_id = int(pending_id)
     except Exception:
@@ -759,37 +926,119 @@ def finalize_pending():
             return jsonify({'error': 'invalid'}), 400
         flash_t('flash_invalid_user', 'Invalid pending identifier.', 'error')
         return redirect(url_for('signup'))
+
     try:
+        # Get pending registration
         pending = db.get_pending_by_id(pending_id)
+
         if not pending:
             raise ValueError('pending registration not found')
-        username = (data.get('username') or '').strip()
-        email = (data.get('email') or '').strip()
-        phone = normalize_indian_phone((data.get('phone') or '').strip())
-        password = (data.get('password') or '').strip()
-        confirm = (data.get('confirm_password') or '').strip()
-        role = (data.get('role') or 'user').strip()
-        if not username or len(username) < 3 or email != pending.get('email'):
-            raise ValueError('invalid account details')
-        if not phone or len(password) < 6 or password != confirm or role not in ('user', 'helper'):
-            raise ValueError('invalid account details')
-        db.update_pending_registration(
-            pending_id, username, generate_password_hash(password), role, phone,
-            data.get('location', ''), data.get('skills', ''), data.get('availability', ''), data.get('about', ''),
+
+        # Get registration details
+        username = (
+            data.get('username')
+            or pending.get('username')
+            or ''
+        ).strip()
+
+        email = (
+            data.get('email')
+            or pending.get('email')
+            or ''
+        ).strip()
+
+        phone = normalize_indian_phone(
+            (
+                data.get('phone')
+                or pending.get('phone')
+                or ''
+            ).strip()
         )
+
+        role = (
+            data.get('role')
+            or pending.get('role')
+            or 'user'
+        ).strip()
+
+        # Validate username
+        if not username or len(username) < 3:
+            raise ValueError('invalid account details')
+
+        # Validate email
+        if email.lower() != (
+            pending.get('email') or ''
+        ).strip().lower():
+            raise ValueError('invalid account details')
+
+        # Validate phone
+        if not phone:
+            raise ValueError('invalid account details')
+
+        # Validate role
+        if role not in ('user', 'helper'):
+            raise ValueError('invalid account details')
+
+        # Email must already be verified
         if not pending.get('email_verified'):
             raise ValueError('email not verified')
+
+        # Update pending registration.
+        # IMPORTANT: keep the password hash that was already stored
+        # when the verification process was started.
+        db.update_pending_registration(
+            pending_id,
+            username,
+            pending['password_hash'],
+            role,
+            phone,
+            data.get('location') or pending.get('helper_location', ''),
+            data.get('skills') or pending.get('helper_skills', ''),
+            data.get('availability') or pending.get('helper_availability', ''),
+            data.get('about') or pending.get('helper_about', ''),
+        )
+
+        # Now create the actual user account
         new_user_id = db.finalize_pending_registration(pending_id)
+
         if is_ajax:
-            return jsonify({'ok': True, 'user_id': new_user_id}), 200
-        flash_t('flash_account_created', '✅ Registration complete. You can now log in.', 'success')
+            return jsonify({
+                'ok': True,
+                'user_id': new_user_id
+            }), 200
+
+        flash_t(
+            'flash_account_created',
+            '✅ Registration complete. You can now log in.',
+            'success'
+        )
+
         return redirect(url_for('login'))
+
     except Exception as e:
-        app.logger.exception('finalize_pending failed: %s', e)
+        app.logger.exception(
+            'finalize_pending failed: %s',
+            e
+        )
+
         if is_ajax:
-            message = str(e) if isinstance(e, ValueError) else 'Unable to complete registration. Please try again.'
-            return jsonify({'error': 'finalization_failed', 'message': message}), 400 if isinstance(e, ValueError) else 500
-        flash_t('flash_signup_exception', 'Unable to complete registration: ' + str(e), 'error')
+            message = (
+                str(e)
+                if isinstance(e, ValueError)
+                else 'Unable to complete registration. Please try again.'
+            )
+
+            return jsonify({
+                'error': 'finalization_failed',
+                'message': message
+            }), 400 if isinstance(e, ValueError) else 500
+
+        flash_t(
+            'flash_signup_exception',
+            'Unable to complete registration: ' + str(e),
+            'error'
+        )
+
         return redirect(url_for('signup'))
 
 
